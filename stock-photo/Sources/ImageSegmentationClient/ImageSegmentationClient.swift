@@ -3,17 +3,39 @@ import Foundation
 import UIKit
 
 public struct ImageSegmentationRequest: Sendable {
-    public let image: UIImage
+    public struct RequestedContents: OptionSet, Sendable {
+        public let rawValue: UInt
 
-    public init(image: UIImage) {
+        public static let rawMask = RequestedContents(rawValue: 1 << 0)
+        public static let finalImage = RequestedContents(rawValue: 1 << 1)
+        public static let all: RequestedContents = [.rawMask, .finalImage]
+
+        public init(rawValue: UInt) {
+            self.rawValue = rawValue
+        }
+    }
+
+    public let image: UIImage
+    public let requestedContents: RequestedContents
+
+    public init(
+        image: UIImage,
+        requestedContents: RequestedContents
+    ) {
         self.image = image
+        self.requestedContents = requestedContents
     }
 }
 
-public struct ImageSegmentationResponse: Equatable, Sendable {
-    public let finalImage: UIImage
+public struct ImageSegmentationResponse: Equatable {
+    public let rawMask: CVPixelBuffer?
+    public let finalImage: UIImage?
 
-    public init(finalImage: UIImage) {
+    public init(
+        rawMask: CVPixelBuffer? = nil,
+        finalImage: UIImage? = nil
+    ) {
+        self.rawMask = rawMask
         self.finalImage = finalImage
     }
 }

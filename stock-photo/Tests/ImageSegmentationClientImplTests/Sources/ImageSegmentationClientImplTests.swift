@@ -23,9 +23,48 @@ final class ImageSegmentationClientImplTests: XCTestCase {
     @MainActor
     func test_imageSegmentation() async throws {
         let result = try await ImageSegmentationClient.liveValue.segment(
-            ImageSegmentationRequest(image: UIImage(named: "example", in: .module, with: nil)!)
+            ImageSegmentationRequest(
+                image: UIImage(named: "example", in: .module, with: nil)!,
+                requestedContents: .rawMask
+            )
         )
-        assertSnapshot(matching: result.finalImage, as: .image)
+        assertSnapshot(matching: UIImage(cgImage: CGImage.create(pixelBuffer: result.rawMask!)!), as: .image(precision: 0.98, perceptualPrecision: 0.98))
+    }
+
+    func test_imageSegmentation_performance_rawMask() throws {
+        measure {
+            let exp = expectation(description: "Finished")
+
+            Task {
+                _ = try await ImageSegmentationClient.liveValue.segment(
+                    ImageSegmentationRequest(
+                        image: UIImage(named: "example", in: .module, with: nil)!,
+                        requestedContents: .rawMask
+                    )
+                )
+                exp.fulfill()
+            }
+
+            wait(for: [exp], timeout: 10.0)
+        }
+    }
+
+    func test_imageSegmentation_performance_finalImage() throws {
+        measure {
+            let exp = expectation(description: "Finished")
+
+            Task {
+                _ = try await ImageSegmentationClient.liveValue.segment(
+                    ImageSegmentationRequest(
+                        image: UIImage(named: "example", in: .module, with: nil)!,
+                        requestedContents: .finalImage
+                    )
+                )
+                exp.fulfill()
+            }
+
+            wait(for: [exp], timeout: 10.0)
+        }
     }
 }
 

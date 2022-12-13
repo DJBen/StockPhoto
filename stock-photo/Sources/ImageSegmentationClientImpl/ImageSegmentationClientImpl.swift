@@ -21,7 +21,19 @@ extension ImageSegmentationClient: DependencyKey {
                 }
 
                 let outputPredictionImage = try model.prediction(x_1: pixelBuffer)
-                let outputCIImage = CIImage(cvPixelBuffer: outputPredictionImage.activation_out) 
+
+                let rawMask: CVPixelBuffer?
+                if request.requestedContents.contains(.rawMask) {
+                    rawMask = outputPredictionImage.activation_out
+                } else {
+                    rawMask = nil
+                }
+
+                let outputCIImage = CIImage(cvPixelBuffer: outputPredictionImage.activation_out)
+
+                guard request.requestedContents.contains(.finalImage) else {
+                    return ImageSegmentationResponse(rawMask: rawMask)
+                }
 
                 guard let maskImage = outputCIImage.removeWhitePixels(),
                       let maskBlurImage = maskImage.applyBlurEffect() else {
@@ -38,7 +50,10 @@ extension ImageSegmentationClient: DependencyKey {
                 .resized(
                     to: CGSize(width: request.image.size.width, height: request.image.size.height)
                 )
-                return ImageSegmentationResponse(finalImage: finalImage)
+                return ImageSegmentationResponse(
+                    rawMask: rawMask,
+                    finalImage: finalImage
+                )
             }
         )
     }
