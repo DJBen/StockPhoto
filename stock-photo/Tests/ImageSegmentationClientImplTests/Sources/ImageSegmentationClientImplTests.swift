@@ -8,6 +8,7 @@
 import XCTest
 import ImageSegmentationClient
 @testable import ImageSegmentationClientImpl
+import SnapshotTesting
 
 final class ImageSegmentationClientImplTests: XCTestCase {
 
@@ -19,11 +20,12 @@ final class ImageSegmentationClientImplTests: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
+    @MainActor
     func test_imageSegmentation() async throws {
         let result = try await ImageSegmentationClient.liveValue.segment(
             ImageSegmentationRequest(image: UIImage(named: "example", in: .module, with: nil)!)
         )
-        print(result)
+        assertSnapshot(matching: result.finalImage, as: .image)
     }
 }
 

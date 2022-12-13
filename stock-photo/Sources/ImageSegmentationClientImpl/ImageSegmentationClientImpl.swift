@@ -11,23 +11,19 @@ extension ImageSegmentationClient: DependencyKey {
         ImageSegmentationClient(
             segment: { request in
                 let config = MLModelConfiguration()
-                let model = try DeepLabV3(configuration: config)
-
-                let width: CGFloat = 513
-                let height: CGFloat = 513
+                let model = try ISNet_1024_1024(configuration: config)
+                
+                let width: CGFloat = 1024
+                let height: CGFloat = 1024
                 let resizedImage = request.image.resized(to: CGSize(width: height, height: height), scale: 1)
                 guard let pixelBuffer = resizedImage.pixelBuffer(width: Int(width), height: Int(height)) else {
                     throw ImageSegmentationError.errorCreatingPixelBuffer
                 }
 
-                let outputPredictionImage = try model.prediction(image: pixelBuffer)
+                let outputPredictionImage = try model.prediction(x_1: pixelBuffer)
+                let outputCIImage = CIImage(cvPixelBuffer: outputPredictionImage.activation_out) 
 
-                guard let outputImage = outputPredictionImage.semanticPredictions.image(min: 0, max: 1, axes: (0, 0, 1)) else {
-                    throw ImageSegmentationError.errorGeneratingPrediction
-                }
-
-                guard let outputCIImage = CIImage(image: outputImage),
-                      let maskImage = outputCIImage.removeWhitePixels(),
+                guard let maskImage = outputCIImage.removeWhitePixels(),
                       let maskBlurImage = maskImage.applyBlurEffect() else {
                     throw ImageSegmentationError.errorCompositingImage
                 }
