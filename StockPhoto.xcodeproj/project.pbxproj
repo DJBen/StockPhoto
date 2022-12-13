@@ -7,8 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EFACEDAA294489AA00DDD16E /* AppCore in Frameworks */ = {isa = PBXBuildFile; productRef = EFACEDA9294489AA00DDD16E /* AppCore */; };
 		EFB17D642944831200AC956F /* StockPhotoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFB17D632944831200AC956F /* StockPhotoApp.swift */; };
-		EFB17D662944831200AC956F /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFB17D652944831200AC956F /* ContentView.swift */; };
+		EFB17D662944831200AC956F /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFB17D652944831200AC956F /* RootView.swift */; };
 		EFB17D682944831300AC956F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EFB17D672944831300AC956F /* Assets.xcassets */; };
 		EFB17D6B2944831300AC956F /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EFB17D6A2944831300AC956F /* Preview Assets.xcassets */; };
 /* End PBXBuildFile section */
@@ -16,9 +17,10 @@
 /* Begin PBXFileReference section */
 		EFB17D602944831200AC956F /* StockPhoto.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StockPhoto.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EFB17D632944831200AC956F /* StockPhotoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StockPhotoApp.swift; sourceTree = "<group>"; };
-		EFB17D652944831200AC956F /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		EFB17D652944831200AC956F /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		EFB17D672944831300AC956F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		EFB17D6A2944831300AC956F /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		EFB17DA22944865100AC956F /* stock-photo */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = "stock-photo"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -26,17 +28,27 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EFACEDAA294489AA00DDD16E /* AppCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		EFACEDA8294489AA00DDD16E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		EFB17D572944831200AC956F = {
 			isa = PBXGroup;
 			children = (
-				EFB17D622944831200AC956F /* StockPhoto */,
+				EFB17DA22944865100AC956F /* stock-photo */,
+				EFB17D622944831200AC956F /* App */,
 				EFB17D612944831200AC956F /* Products */,
+				EFACEDA8294489AA00DDD16E /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -48,15 +60,15 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		EFB17D622944831200AC956F /* StockPhoto */ = {
+		EFB17D622944831200AC956F /* App */ = {
 			isa = PBXGroup;
 			children = (
 				EFB17D632944831200AC956F /* StockPhotoApp.swift */,
-				EFB17D652944831200AC956F /* ContentView.swift */,
+				EFB17D652944831200AC956F /* RootView.swift */,
 				EFB17D672944831300AC956F /* Assets.xcassets */,
 				EFB17D692944831300AC956F /* Preview Content */,
 			);
-			path = StockPhoto;
+			path = App;
 			sourceTree = "<group>";
 		};
 		EFB17D692944831300AC956F /* Preview Content */ = {
@@ -83,6 +95,9 @@
 			dependencies = (
 			);
 			name = StockPhoto;
+			packageProductDependencies = (
+				EFACEDA9294489AA00DDD16E /* AppCore */,
+			);
 			productName = StockPhoto;
 			productReference = EFB17D602944831200AC956F /* StockPhoto.app */;
 			productType = "com.apple.product-type.application";
@@ -137,7 +152,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EFB17D662944831200AC956F /* ContentView.swift in Sources */,
+				EFB17D662944831200AC956F /* RootView.swift in Sources */,
 				EFB17D642944831200AC956F /* StockPhotoApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -266,7 +281,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"StockPhoto/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"App/Preview Content\"";
 				DEVELOPMENT_TEAM = 52RD2GH5DP;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -295,7 +310,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"StockPhoto/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"App/Preview Content\"";
 				DEVELOPMENT_TEAM = 52RD2GH5DP;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -339,6 +354,13 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		EFACEDA9294489AA00DDD16E /* AppCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AppCore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = EFB17D582944831200AC956F /* Project object */;
 }
