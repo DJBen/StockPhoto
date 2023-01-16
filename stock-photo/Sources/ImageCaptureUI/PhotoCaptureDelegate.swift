@@ -89,9 +89,12 @@ extension PhotoCaptureProcessor: AVCapturePhotoCaptureDelegate {
     }
 
     func handleMatteData(_ photo: AVCapturePhoto, ssmType: AVSemanticSegmentationMatte.MatteType) {
-
         // Find the semantic segmentation matte image for the specified type.
-        guard var segmentationMatte = photo.semanticSegmentationMatte(for: ssmType) else { return }
+        guard var segmentationMatte = photo.semanticSegmentationMatte(
+            for: ssmType
+        ) else {
+            return
+        }
 
         // Retrieve the photo orientation and apply it to the matte image.
         if let orientation = photo.metadata[String(kCGImagePropertyOrientation)] as? UInt32,
@@ -120,15 +123,23 @@ extension PhotoCaptureProcessor: AVCapturePhotoCaptureDelegate {
         guard let perceptualColorSpace = CGColorSpace(name: CGColorSpace.sRGB) else { return }
 
         // Create a new CIImage from the matte's underlying CVPixelBuffer.
-        let ciImage = CIImage( cvImageBuffer: segmentationMatte.mattingImage,
-                               options: [imageOption: true,
-                                         .colorSpace: perceptualColorSpace])
+        let ciImage = CIImage(
+            cvImageBuffer: segmentationMatte.mattingImage,
+            options: [
+                imageOption: true,
+                .colorSpace: perceptualColorSpace
+            ]
+        )
 
         // Get the HEIF representation of this image.
-        guard let imageData = context.heifRepresentation(of: ciImage,
-                                                         format: .RGBA8,
-                                                         colorSpace: perceptualColorSpace,
-                                                         options: [.depthImage: ciImage]) else { return }
+        guard let imageData = context.heifRepresentation(
+            of: ciImage,
+            format: .RGBA8,
+            colorSpace: perceptualColorSpace,
+            options: [.depthImage: ciImage]
+        ) else {
+            return
+        }
 
         // Add the image data to the SSM data array for writing to the photo library.
         semanticSegmentationMatteDataArray.append(imageData)
@@ -146,20 +157,25 @@ extension PhotoCaptureProcessor: AVCapturePhotoCaptureDelegate {
         }
         // A portrait effects matte gets generated only if AVFoundation detects a face.
         if var portraitEffectsMatte = photo.portraitEffectsMatte {
-            if let orientation = photo.metadata[ String(kCGImagePropertyOrientation) ] as? UInt32 {
+            if let orientation = photo.metadata[String(kCGImagePropertyOrientation)] as? UInt32 {
                 portraitEffectsMatte = portraitEffectsMatte.applyingExifOrientation(CGImagePropertyOrientation(rawValue: orientation)!)
             }
             let portraitEffectsMattePixelBuffer = portraitEffectsMatte.mattingImage
-            let portraitEffectsMatteImage = CIImage( cvImageBuffer: portraitEffectsMattePixelBuffer, options: [ .auxiliaryPortraitEffectsMatte: true ] )
+            let portraitEffectsMatteImage = CIImage(
+                cvImageBuffer: portraitEffectsMattePixelBuffer,
+                options: [.auxiliaryPortraitEffectsMatte: true]
+            )
 
             guard let perceptualColorSpace = CGColorSpace(name: CGColorSpace.sRGB) else {
                 portraitEffectsMatteData = nil
                 return
             }
-            portraitEffectsMatteData = context.heifRepresentation(of: portraitEffectsMatteImage,
-                                                                  format: .RGBA8,
-                                                                  colorSpace: perceptualColorSpace,
-                                                                  options: [.portraitEffectsMatteImage: portraitEffectsMatteImage])
+            portraitEffectsMatteData = context.heifRepresentation(
+                of: portraitEffectsMatteImage,
+                format: .RGBA8,
+                colorSpace: perceptualColorSpace,
+                options: [.portraitEffectsMatteImage: portraitEffectsMatteImage]
+            )
         } else {
             portraitEffectsMatteData = nil
         }
@@ -170,7 +186,11 @@ extension PhotoCaptureProcessor: AVCapturePhotoCaptureDelegate {
     }
 
     /// - Tag: DidFinishRecordingLive
-    func photoOutput(_ output: AVCapturePhotoOutput, didFinishRecordingLivePhotoMovieForEventualFileAt outputFileURL: URL, resolvedSettings: AVCaptureResolvedPhotoSettings) {
+    func photoOutput(
+        _ output: AVCapturePhotoOutput,
+        didFinishRecordingLivePhotoMovieForEventualFileAt outputFileURL: URL,
+        resolvedSettings: AVCaptureResolvedPhotoSettings
+    ) {
         livePhotoCaptureHandler(false)
     }
 
@@ -237,8 +257,7 @@ extension PhotoCaptureProcessor: AVCapturePhotoCaptureDelegate {
                     }
 
                     self.didFinish()
-                }
-                )
+                })
             } else {
                 self.didFinish()
             }

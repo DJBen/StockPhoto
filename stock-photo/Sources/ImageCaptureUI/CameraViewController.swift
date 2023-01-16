@@ -272,18 +272,27 @@ import Photos
                     let message = NSLocalizedString(changePrivacySetting, comment: "Alert message when the user has denied access to the camera")
                     let alertController = UIAlertController(title: "AVCam", message: message, preferredStyle: .alert)
 
-                    alertController.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: "Alert OK button"),
-                                                            style: .cancel,
-                                                            handler: nil))
+                    alertController.addAction(
+                        UIAlertAction(
+                            title: NSLocalizedString("OK", comment: "Alert OK button"),
+                            style: .cancel,
+                            handler: nil
+                        )
+                    )
 
-                    alertController.addAction(UIAlertAction(title: NSLocalizedString("Settings", comment: "Alert button to open Settings"),
-                                                            style: .`default`,
-                                                            handler: { _ in
-                                                                UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!,
-                                                                                          options: [:],
-                                                                                          completionHandler: nil)
-                    }))
-
+                    alertController.addAction(
+                        UIAlertAction(
+                            title: NSLocalizedString("Settings", comment: "Alert button to open Settings"),
+                            style: .`default`,
+                            handler: { _ in
+                                UIApplication.shared.open(
+                                    URL(string: UIApplication.openSettingsURLString)!,
+                                    options: [:],
+                                    completionHandler: nil
+                                )
+                            }
+                        )
+                    )
                     self.present(alertController, animated: true, completion: nil)
                 }
 
@@ -639,8 +648,11 @@ import Photos
 
     private var cameraUnavailableLabel: UILabel!
 
-    private let videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera, .builtInDualCamera, .builtInTrueDepthCamera, .builtInDualWideCamera],
-                                                                               mediaType: .video, position: .unspecified)
+    private let videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(
+        deviceTypes: [.builtInWideAngleCamera, .builtInDualCamera, .builtInTrueDepthCamera, .builtInDualWideCamera],
+        mediaType: .video,
+        position: .unspecified
+    )
 
     /// - Tag: ChangeCamera
     @objc private func changeCamera(_ cameraButton: UIButton) {
@@ -659,10 +671,16 @@ import Photos
             let currentVideoDevice = self.videoDeviceInput.device
             let currentPosition = currentVideoDevice.position
 
-            let backVideoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInDualCamera, .builtInDualWideCamera, .builtInWideAngleCamera],
-                                                                                   mediaType: .video, position: .back)
-            let frontVideoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInTrueDepthCamera, .builtInWideAngleCamera],
-                                                                                    mediaType: .video, position: .front)
+            let backVideoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(
+                deviceTypes: [.builtInDualCamera, .builtInDualWideCamera, .builtInWideAngleCamera],
+                mediaType: .video,
+                position: .back
+            )
+            let frontVideoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(
+                deviceTypes: [.builtInTrueDepthCamera, .builtInWideAngleCamera],
+                mediaType: .video,
+                position: .front
+            )
             var newVideoDevice: AVCaptureDevice? = nil
 
             switch currentPosition {
@@ -892,8 +910,7 @@ import Photos
                         self.spinner.stopAnimating()
                     }
                 }
-            }
-            )
+            })
 
             // Specify the location the photo was taken
             photoCaptureProcessor.location = self.locationManager.location
@@ -1196,8 +1213,7 @@ import Photos
                             print("AVCam couldn't save the movie to your photo library: \(String(describing: error))")
                         }
                         cleanup()
-                    }
-                    )
+                    })
                 } else {
                     cleanup()
                 }
