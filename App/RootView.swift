@@ -6,6 +6,7 @@
 //
 
 import AppCore
+import AppUI
 import ComposableArchitecture
 import SwiftUI
 
@@ -15,13 +16,9 @@ struct RootView: View {
         reducer: StockPhoto()._printChanges()
     )
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundColor(.accentColor)
-            Text("Hello, world!")
+        NavigationStack {
+            AppView(store: self.store)
         }
-        .padding()
     }
 }
 

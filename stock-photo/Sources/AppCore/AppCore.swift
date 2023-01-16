@@ -1,14 +1,18 @@
 import ComposableArchitecture
 import Dispatch
+import ImageCaptureCore
 
 public struct StockPhoto: ReducerProtocol {
     public enum State: Equatable {
-        case main
+        case imageCapture(ImageCapture.State)
 
-        public init() { self = .main }
+        public init() {
+            self = .imageCapture(ImageCapture.State())
+        }
     }
 
     public enum Action: Equatable {
+        case imageCapture(ImageCapture.Action)
     }
 
     public init() {}
@@ -16,7 +20,12 @@ public struct StockPhoto: ReducerProtocol {
     public var body: some ReducerProtocol<State, Action> {
         Reduce { state, action in
             switch action {
+            case .imageCapture(let imageCaptureAction):
+                return .none
             }
+        }
+        .ifCaseLet(/State.imageCapture, action: /Action.imageCapture) {
+            ImageCapture()
         }
     }
 }

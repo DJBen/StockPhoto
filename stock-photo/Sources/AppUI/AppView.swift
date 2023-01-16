@@ -1,5 +1,6 @@
 import AppCore
 import ComposableArchitecture
+import ImageCaptureUI
 import SwiftUI
 
 public struct AppView: View {
@@ -10,8 +11,10 @@ public struct AppView: View {
     }
 
     public var body: some View {
-        WithViewStore(self.store, observe: { $0 }) { store in
-
+        SwitchStore(self.store) {
+            CaseLet(state: /StockPhoto.State.imageCapture, action: StockPhoto.Action.imageCapture) { store in
+                ImageCaptureView(store: store)
+            }
         }
     }
 }

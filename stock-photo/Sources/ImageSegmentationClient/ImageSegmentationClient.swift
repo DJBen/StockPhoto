@@ -1,6 +1,7 @@
 import Dependencies
 import Foundation
 import UIKit
+import XCTestDynamicOverlay
 
 public struct ImageSegmentationRequest: Sendable {
     public struct RequestedContents: OptionSet, Sendable {
@@ -54,4 +55,17 @@ public struct ImageSegmentationClient: Sendable {
     ) {
         self.segment = segment
     }
+}
+
+extension ImageSegmentationClient: TestDependencyKey {
+    public static let testValue = Self(
+        segment: unimplemented("\(Self.self)")
+    )
+}
+
+extension DependencyValues {
+  public var imageSegmentationClient: ImageSegmentationClient {
+    get { self[ImageSegmentationClient.self] }
+    set { self[ImageSegmentationClient.self] = newValue }
+  }
 }
