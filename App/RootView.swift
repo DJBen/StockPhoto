@@ -1,13 +1,19 @@
 //
-//  ContentView.swift
+//  RootView.swift
 //  StockPhoto
 //
 //  Created by Ben Lu on 12/10/22.
 //
 
+import AppCore
+import ComposableArchitecture
 import SwiftUI
 
-struct ContentView: View {
+struct RootView: View {
+    let store = Store(
+        initialState: StockPhoto.State(),
+        reducer: StockPhoto()._printChanges()
+    )
     var body: some View {
         VStack {
             Image(systemName: "globe")
@@ -19,8 +25,8 @@ struct ContentView: View {
     }
 }
 
-struct ContentView_Previews: PreviewProvider {
+struct RootView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        RootView()
     }
 }

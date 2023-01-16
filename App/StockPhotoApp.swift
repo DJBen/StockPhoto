@@ -11,7 +11,7 @@ import SwiftUI
 struct StockPhotoApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
         }
     }
 }
