@@ -6,11 +6,13 @@ import PackageDescription
 let package = Package(
     name: "stock-photo",
     platforms: [
-        .iOS(.v14)
+        .iOS(.v16)
     ],
     products: [
         .library(name: "AppCore", targets: ["AppCore"]),
         .library(name: "AppUI", targets: ["AppUI"]),
+        .library(name: "ImageCaptureCore", targets: ["ImageCaptureCore"]),
+        .library(name: "ImageCaptureUI", targets: ["ImageCaptureUI"]),
         .library(name: "CoreMLHelpers", targets: ["CoreMLHelpers"]),
         .library(name: "ImageSegmentationClient", targets: ["ImageSegmentationClient"]),
         .library(name: "ImageSegmentationClientImpl", targets: ["ImageSegmentationClientImpl"]),
@@ -32,17 +34,38 @@ let package = Package(
             name: "AppCore",
             dependencies: [
                 "ImageSegmentationClient",
+                "ImageCaptureCore",
                 .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
             ]
         ),
         .testTarget(
             name: "AppCoreTests",
-            dependencies: ["AppCore"]
+            dependencies: [
+                "AppCore"
+            ]
         ),
         .target(
             name: "AppUI",
             dependencies: [
                 "AppCore",
+                "ImageCaptureCore",
+                "ImageCaptureUI"
+            ]
+        ),
+        .target(
+            name: "ImageCaptureCore",
+            dependencies: [
+                "ImageSegmentationClient",
+                .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+            ]
+        ),
+        .target(
+            name: "ImageCaptureUI",
+            dependencies: [
+                "ImageCaptureCore"
+            ],
+            resources: [
+                .process("Resources"),
             ]
         ),
         .target(
@@ -77,7 +100,8 @@ let package = Package(
     ]
 )
 
-for target in package.targets {
+// Opt-out image capture UI from concurrency checks
+for target in package.targets where target.name != "ImageCaptureUI" {
     target.swiftSettings = [
         .unsafeFlags([
             "-Xfrontend", "-enable-actor-data-race-checks",

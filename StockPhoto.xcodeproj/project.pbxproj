@@ -12,15 +12,18 @@
 		EFB17D662944831200AC956F /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFB17D652944831200AC956F /* RootView.swift */; };
 		EFB17D682944831300AC956F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EFB17D672944831300AC956F /* Assets.xcassets */; };
 		EFB17D6B2944831300AC956F /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EFB17D6A2944831300AC956F /* Preview Assets.xcassets */; };
+		EFCC38BA2974DB4300F64004 /* AppUI in Frameworks */ = {isa = PBXBuildFile; productRef = EFCC38B92974DB4300F64004 /* AppUI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		EFACEDAB294842D900DDD16E /* StockPhoto.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = StockPhoto.entitlements; sourceTree = "<group>"; };
 		EFB17D602944831200AC956F /* StockPhoto.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StockPhoto.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EFB17D632944831200AC956F /* StockPhotoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StockPhotoApp.swift; sourceTree = "<group>"; };
 		EFB17D652944831200AC956F /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		EFB17D672944831300AC956F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		EFB17D6A2944831300AC956F /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		EFB17DA22944865100AC956F /* stock-photo */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = "stock-photo"; sourceTree = "<group>"; };
+		EFCC38BD2974DC8400F64004 /* StockPhoto-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "StockPhoto-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -28,6 +31,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EFCC38BA2974DB4300F64004 /* AppUI in Frameworks */,
 				EFACEDAA294489AA00DDD16E /* AppCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -45,6 +49,8 @@
 		EFB17D572944831200AC956F = {
 			isa = PBXGroup;
 			children = (
+				EFCC38BD2974DC8400F64004 /* StockPhoto-Info.plist */,
+				EFACEDAB294842D900DDD16E /* StockPhoto.entitlements */,
 				EFB17DA22944865100AC956F /* stock-photo */,
 				EFB17D622944831200AC956F /* App */,
 				EFB17D612944831200AC956F /* Products */,
@@ -97,6 +103,7 @@
 			name = StockPhoto;
 			packageProductDependencies = (
 				EFACEDA9294489AA00DDD16E /* AppCore */,
+				EFCC38B92974DB4300F64004 /* AppUI */,
 			);
 			productName = StockPhoto;
 			productReference = EFB17D602944831200AC956F /* StockPhoto.app */;
@@ -279,13 +286,18 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = StockPhoto.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"App/Preview Content\"";
 				DEVELOPMENT_TEAM = 52RD2GH5DP;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_FILE = "StockPhoto-Info.plist";
+				INFOPLIST_KEY_NSCameraUsageDescription = "StockPhoto uses your camera to take photo.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "StockPhoto uses your location to tag where photos and videos are taken.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "StockPhoto uses the microphone to record sound during Live Photos and movies.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "StockPhoto saves captured photos and videos to your photo library.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -308,13 +320,18 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = StockPhoto.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"App/Preview Content\"";
 				DEVELOPMENT_TEAM = 52RD2GH5DP;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_FILE = "StockPhoto-Info.plist";
+				INFOPLIST_KEY_NSCameraUsageDescription = "StockPhoto uses your camera to take photo.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "StockPhoto uses your location to tag where photos and videos are taken.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "StockPhoto uses the microphone to record sound during Live Photos and movies.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "StockPhoto saves captured photos and videos to your photo library.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -359,6 +376,10 @@
 		EFACEDA9294489AA00DDD16E /* AppCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = AppCore;
+		};
+		EFCC38B92974DB4300F64004 /* AppUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AppUI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
