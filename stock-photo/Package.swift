@@ -16,6 +16,7 @@ let package = Package(
         .library(name: "CoreMLHelpers", targets: ["CoreMLHelpers"]),
         .library(name: "ImageSegmentationClient", targets: ["ImageSegmentationClient"]),
         .library(name: "ImageSegmentationClientImpl", targets: ["ImageSegmentationClientImpl"]),
+        .library(name: "DeviceExtension", targets: ["DeviceExtension"]),
     ],
     dependencies: [
         .package(
@@ -62,6 +63,7 @@ let package = Package(
         .target(
             name: "ImageCaptureUI",
             dependencies: [
+                "DeviceExtension",
                 "ImageCaptureCore"
             ],
             resources: [
@@ -96,7 +98,11 @@ let package = Package(
             resources: [
                 .process("Resources"),
             ]
-        )
+        ),
+        .target(
+            name: "DeviceExtension",
+            dependencies: []
+        ),
     ]
 )
 

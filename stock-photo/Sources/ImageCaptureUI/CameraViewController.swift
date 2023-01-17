@@ -7,6 +7,7 @@ The app's primary view controller that presents the camera interface.
 
 import UIKit
 import AVFoundation
+import DeviceExtension
 import CoreLocation
 import Photos
 
@@ -33,6 +34,9 @@ import Photos
 
         let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(focusAndExposeTap))
         previewView.addGestureRecognizer(tapGestureRecognizer)
+
+        let pinchGestureRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(zoomFactorChanged))
+        previewView.addGestureRecognizer(pinchGestureRecognizer)
 
         photoButton = UIButton(type: .custom)
         photoButton.setImage(UIImage(named: "CapturePhoto", in: .module, with: nil)!, for: .normal)
@@ -377,11 +381,19 @@ import Photos
                 session.commitConfiguration()
                 return
             }
+
+            print("current: \(videoDevice.videoZoomFactor)")
+            print("min: \(videoDevice.minAvailableVideoZoomFactor)")
+            print("zooms: \(videoDevice.virtualDeviceSwitchOverVideoZoomFactors)")
+            print("max: \(videoDevice.maxAvailableVideoZoomFactor)")
+
             let videoDeviceInput = try AVCaptureDeviceInput(device: videoDevice)
 
             if session.canAddInput(videoDeviceInput) {
                 session.addInput(videoDeviceInput)
                 self.videoDeviceInput = videoDeviceInput
+
+                setDefaultZoom(videoDevice: videoDevice)
 
                 DispatchQueue.main.async {
                     /*
@@ -455,6 +467,22 @@ import Photos
         session.commitConfiguration()
     }
 
+    private func setDefaultZoom(videoDevice: AVCaptureDevice) {
+        do {
+            try videoDevice.lockForConfiguration()
+            switch videoDevice.deviceType {
+            case .builtInTripleCamera, .builtInDualWideCamera:
+                videoDevice.videoZoomFactor = 2
+                previousVideoZoomFactor = 2
+            default:
+                break
+            }
+            videoDevice.unlockForConfiguration()
+        } catch {
+            print("Could not lock device for configuration: \(error)")
+        }
+    }
+
     @objc private func resumeInterruptedSession(_ resumeButton: UIButton) {
         sessionQueue.async {
             /*
@@ -489,7 +517,7 @@ import Photos
     private var cameraUnavailableLabel: UILabel!
 
     private let videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(
-        deviceTypes: [.builtInWideAngleCamera, .builtInDualCamera, .builtInTrueDepthCamera, .builtInDualWideCamera],
+        deviceTypes: [.builtInDualCamera, .builtInDualWideCamera, .builtInWideAngleCamera],
         mediaType: .video,
         position: .unspecified
     )
@@ -524,10 +552,8 @@ import Photos
             switch currentPosition {
             case .unspecified, .front:
                 newVideoDevice = backVideoDeviceDiscoverySession.devices.first
-
             case .back:
                 newVideoDevice = frontVideoDeviceDiscoverySession.devices.first
-
             @unknown default:
                 print("Unknown capture position. Defaulting to back, dual-camera.")
                 newVideoDevice = AVCaptureDevice.default(.builtInDualCamera, for: .video, position: .back)
@@ -552,6 +578,8 @@ import Photos
                     } else {
                         self.session.addInput(self.videoDeviceInput)
                     }
+
+                    self.setDefaultZoom(videoDevice: videoDevice)
 
                     /*
                      Set Live Photo capture and depth data delivery if it's supported. When changing cameras, the
@@ -616,6 +644,29 @@ import Photos
                 device.unlockForConfiguration()
             } catch {
                 print("Could not lock device for configuration: \(error)")
+            }
+        }
+    }
+
+    private var previousVideoZoomFactor: CGFloat = 1
+
+    @objc private func zoomFactorChanged(_ pinchGestureRecognizer: UIPinchGestureRecognizer) {
+        sessionQueue.async {
+            let currentDevice = self.videoDeviceInput.device
+
+            switch pinchGestureRecognizer.state {
+            case .began:
+                try? currentDevice.lockForConfiguration()
+                self.previousVideoZoomFactor = currentDevice.videoZoomFactor
+            case .changed:
+                let minZoomFactor = currentDevice.minAvailableVideoZoomFactor
+                let maxZoomFactor = currentDevice.maxAvailableVideoZoomFactor
+                currentDevice.videoZoomFactor = min(maxZoomFactor, max(minZoomFactor, self.previousVideoZoomFactor * pinchGestureRecognizer.scale))
+            case .ended:
+                currentDevice.unlockForConfiguration()
+                self.previousVideoZoomFactor = currentDevice.videoZoomFactor
+            default:
+                break
             }
         }
     }
