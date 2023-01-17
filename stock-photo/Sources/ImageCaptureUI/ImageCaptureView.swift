@@ -11,7 +11,26 @@ public struct ImageCaptureView: View {
 
     public var body: some View {
         WithViewStore(store, observe: { $0 }) { viewStore in
-            CameraView()
+            CameraView(
+                didFinishProcessingPhoto: { image, depthData in
+                    viewStore.send(
+                        .didFinishProcessingPhoto(image: image, depthData: depthData)
+                    )
+                }
+            )
+            .sheet(
+                item: Binding(
+                    get: {
+                        viewStore.capturedImage
+                    },
+                    set: { _ in
+                        viewStore.send(.clearCapturedImage)
+                    }
+                ),
+                content: { capturedImage in
+                    ImageSegmentationDisplayView(capturedImage: capturedImage)
+                }
+            )
         }
     }
 }

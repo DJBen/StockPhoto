@@ -7,6 +7,7 @@ The app's photo capture delegate object.
 
 import AVFoundation
 import Photos
+import UIKit
 
 class PhotoCaptureProcessor: NSObject {
     private(set) var requestedPhotoSettings: AVCapturePhotoSettings
@@ -20,8 +21,6 @@ class PhotoCaptureProcessor: NSObject {
     private let completionHandler: (PhotoCaptureProcessor) -> Void
 
     private let photoProcessingHandler: (Bool) -> Void
-
-    private var photoData: Data?
 
     private var livePhotoCompanionMovieURL: URL?
 
@@ -158,7 +157,12 @@ extension PhotoCaptureProcessor: AVCapturePhotoCaptureDelegate {
             print("Error capturing photo: \(error)")
             return
         } else {
-            photoData = photo.fileDataRepresentation()
+            if let imageFileRepresentation = photo.fileDataRepresentation(), let image = UIImage(data: imageFileRepresentation) {
+                cameraViewDelegate?.didFinishProcessingPhoto(
+                    image,
+                    depthData: photo.depthData
+                )
+            }
         }
         // A portrait effects matte gets generated only if AVFoundation detects a face.
         if var portraitEffectsMatte = photo.portraitEffectsMatte {

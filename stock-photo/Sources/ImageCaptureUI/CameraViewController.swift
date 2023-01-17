@@ -12,6 +12,7 @@ import CoreLocation
 import Photos
 
 @objc protocol CameraViewControllerDelegate {
+    func didFinishProcessingPhoto(_ photo: UIImage, depthData: AVDepthData?)
 }
 
 class CameraViewController: UIViewController {

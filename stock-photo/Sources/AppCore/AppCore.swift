@@ -20,7 +20,7 @@ public struct StockPhoto: ReducerProtocol {
     public var body: some ReducerProtocol<State, Action> {
         Reduce { state, action in
             switch action {
-            case .imageCapture(let imageCaptureAction):
+            case .imageCapture(_):
                 return .none
             }
         }
