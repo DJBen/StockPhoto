@@ -11,7 +11,12 @@ import DeviceExtension
 import CoreLocation
 import Photos
 
-@preconcurrency class CameraViewController: UIViewController {
+@objc protocol CameraViewControllerDelegate {
+}
+
+class CameraViewController: UIViewController {
+
+    weak var delegate: CameraViewControllerDelegate?
 
     private var spinner: UIActivityIndicatorView!
 
@@ -728,50 +733,54 @@ import Photos
 
             photoSettings.photoQualityPrioritization = self.photoQualityPrioritizationMode
 
-            let photoCaptureProcessor = PhotoCaptureProcessor(with: photoSettings, willCapturePhotoAnimation: {
-                // Flash the screen to signal that AVCam took a photo.
-                DispatchQueue.main.async {
-                    self.previewView.videoPreviewLayer.opacity = 0
-                    UIView.animate(withDuration: 0.25) {
-                        self.previewView.videoPreviewLayer.opacity = 1
-                    }
-                }
-            }, livePhotoCaptureHandler: { capturing in
-                self.sessionQueue.async {
-                    if capturing {
-                        self.inProgressLivePhotoCapturesCount += 1
-                    } else {
-                        self.inProgressLivePhotoCapturesCount -= 1
-                    }
-
-                    let inProgressLivePhotoCapturesCount = self.inProgressLivePhotoCapturesCount
+            let photoCaptureProcessor = PhotoCaptureProcessor(
+                with: photoSettings,
+                cameraViewDelegate: self.delegate,
+                willCapturePhotoAnimation: {
+                    // Flash the screen to signal that AVCam took a photo.
                     DispatchQueue.main.async {
-                        if inProgressLivePhotoCapturesCount > 0 {
-                            self.capturingLivePhotoLabel.isHidden = false
-                        } else if inProgressLivePhotoCapturesCount == 0 {
-                            self.capturingLivePhotoLabel.isHidden = true
+                        self.previewView.videoPreviewLayer.opacity = 0
+                        UIView.animate(withDuration: 0.25) {
+                            self.previewView.videoPreviewLayer.opacity = 1
+                        }
+                    }
+                }, livePhotoCaptureHandler: { capturing in
+                    self.sessionQueue.async {
+                        if capturing {
+                            self.inProgressLivePhotoCapturesCount += 1
                         } else {
-                            print("Error: In progress Live Photo capture count is less than 0.")
+                            self.inProgressLivePhotoCapturesCount -= 1
+                        }
+
+                        let inProgressLivePhotoCapturesCount = self.inProgressLivePhotoCapturesCount
+                        DispatchQueue.main.async {
+                            if inProgressLivePhotoCapturesCount > 0 {
+                                self.capturingLivePhotoLabel.isHidden = false
+                            } else if inProgressLivePhotoCapturesCount == 0 {
+                                self.capturingLivePhotoLabel.isHidden = true
+                            } else {
+                                print("Error: In progress Live Photo capture count is less than 0.")
+                            }
+                        }
+                    }
+                }, completionHandler: { photoCaptureProcessor in
+                    // When the capture is complete, remove a reference to the photo capture delegate so it can be deallocated.
+                    self.sessionQueue.async {
+                        self.inProgressPhotoCaptureDelegates[photoCaptureProcessor.requestedPhotoSettings.uniqueID] = nil
+                    }
+                }, photoProcessingHandler: { animate in
+                    // Animates a spinner while photo is processing
+                    DispatchQueue.main.async {
+                        if animate {
+                            self.spinner.hidesWhenStopped = true
+                            self.spinner.center = CGPoint(x: self.previewView.frame.size.width / 2.0, y: self.previewView.frame.size.height / 2.0)
+                            self.spinner.startAnimating()
+                        } else {
+                            self.spinner.stopAnimating()
                         }
                     }
                 }
-            }, completionHandler: { photoCaptureProcessor in
-                // When the capture is complete, remove a reference to the photo capture delegate so it can be deallocated.
-                self.sessionQueue.async {
-                    self.inProgressPhotoCaptureDelegates[photoCaptureProcessor.requestedPhotoSettings.uniqueID] = nil
-                }
-            }, photoProcessingHandler: { animate in
-                // Animates a spinner while photo is processing
-                DispatchQueue.main.async {
-                    if animate {
-                        self.spinner.hidesWhenStopped = true
-                        self.spinner.center = CGPoint(x: self.previewView.frame.size.width / 2.0, y: self.previewView.frame.size.height / 2.0)
-                        self.spinner.startAnimating()
-                    } else {
-                        self.spinner.stopAnimating()
-                    }
-                }
-            })
+            )
 
             // Specify the location the photo was taken
             photoCaptureProcessor.location = self.locationManager.location

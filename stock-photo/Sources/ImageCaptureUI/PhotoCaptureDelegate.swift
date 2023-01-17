@@ -28,16 +28,21 @@ class PhotoCaptureProcessor: NSObject {
     private var portraitEffectsMatteData: Data?
 
     private var semanticSegmentationMatteDataArray = [Data]()
+
     private var maxPhotoProcessingTime: CMTime?
+
+    private weak var cameraViewDelegate: CameraViewControllerDelegate?
 
     // Save the location of captured photos
     var location: CLLocation?
 
     init(with requestedPhotoSettings: AVCapturePhotoSettings,
+         cameraViewDelegate: CameraViewControllerDelegate?,
          willCapturePhotoAnimation: @escaping () -> Void,
          livePhotoCaptureHandler: @escaping (Bool) -> Void,
          completionHandler: @escaping (PhotoCaptureProcessor) -> Void,
          photoProcessingHandler: @escaping (Bool) -> Void) {
+        self.cameraViewDelegate = cameraViewDelegate
         self.requestedPhotoSettings = requestedPhotoSettings
         self.willCapturePhotoAnimation = willCapturePhotoAnimation
         self.livePhotoCaptureHandler = livePhotoCaptureHandler
@@ -209,58 +214,6 @@ extension PhotoCaptureProcessor: AVCapturePhotoCaptureDelegate {
             print("Error capturing photo: \(error)")
             didFinish()
             return
-        }
-
-        guard let photoData = photoData else {
-            print("No photo data resource")
-            didFinish()
-            return
-        }
-
-        PHPhotoLibrary.requestAuthorization { status in
-            if status == .authorized {
-                PHPhotoLibrary.shared().performChanges({
-                    let options = PHAssetResourceCreationOptions()
-                    let creationRequest = PHAssetCreationRequest.forAsset()
-                    options.uniformTypeIdentifier = self.requestedPhotoSettings.processedFileType.map { $0.rawValue }
-                    creationRequest.addResource(with: .photo, data: photoData, options: options)
-
-                    // Specify the location the photo was taken
-                    creationRequest.location = self.location
-
-                    if let livePhotoCompanionMovieURL = self.livePhotoCompanionMovieURL {
-                        let livePhotoCompanionMovieFileOptions = PHAssetResourceCreationOptions()
-                        livePhotoCompanionMovieFileOptions.shouldMoveFile = true
-                        creationRequest.addResource(with: .pairedVideo,
-                                                    fileURL: livePhotoCompanionMovieURL,
-                                                    options: livePhotoCompanionMovieFileOptions)
-                    }
-
-                    // Save Portrait Effects Matte to Photos Library only if it was generated
-                    if let portraitEffectsMatteData = self.portraitEffectsMatteData {
-                        let creationRequest = PHAssetCreationRequest.forAsset()
-                        creationRequest.addResource(with: .photo,
-                                                    data: portraitEffectsMatteData,
-                                                    options: nil)
-                    }
-                    // Save Portrait Effects Matte to Photos Library only if it was generated
-                    for semanticSegmentationMatteData in self.semanticSegmentationMatteDataArray {
-                        let creationRequest = PHAssetCreationRequest.forAsset()
-                        creationRequest.addResource(with: .photo,
-                                                    data: semanticSegmentationMatteData,
-                                                    options: nil)
-                    }
-
-                }, completionHandler: { _, error in
-                    if let error = error {
-                        print("Error occurred while saving photo to photo library: \(error)")
-                    }
-
-                    self.didFinish()
-                })
-            } else {
-                self.didFinish()
-            }
         }
     }
 }
