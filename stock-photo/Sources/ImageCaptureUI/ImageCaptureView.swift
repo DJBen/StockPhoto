@@ -28,7 +28,11 @@ public struct ImageCaptureView: View {
                     }
                 ),
                 content: { capturedImage in
-                    ImageSegmentationDisplayView(capturedImage: capturedImage)
+                    ImageSegmentationDisplayView(
+                        capturedImage: capturedImage,
+                        finalImage: viewStore.finalImage,
+                        segmentationMask: viewStore.segmentationMask
+                    )
                 }
             )
         }

@@ -28,7 +28,7 @@ public struct ImageSegmentationRequest: Sendable {
     }
 }
 
-public struct ImageSegmentationResponse: Equatable {
+public struct ImageSegmentationResponse: Equatable, Sendable {
     public let rawMask: CVPixelBuffer?
     public let finalImage: UIImage?
 

@@ -7,7 +7,9 @@ public struct StockPhoto: ReducerProtocol {
         case imageCapture(ImageCapture.State)
 
         public init() {
-            self = .imageCapture(ImageCapture.State())
+            self = .imageCapture(
+                ImageCapture.State()
+            )
         }
     }
 
