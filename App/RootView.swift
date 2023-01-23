@@ -8,6 +8,7 @@
 import AppCore
 import AppUI
 import ComposableArchitecture
+import ImageSegmentationClientImpl
 import SwiftUI
 
 struct RootView: View {

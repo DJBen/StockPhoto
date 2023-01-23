@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EF9D2015297E2BFE0064F061 /* ImageSegmentationClientImpl in Frameworks */ = {isa = PBXBuildFile; productRef = EF9D2014297E2BFE0064F061 /* ImageSegmentationClientImpl */; };
 		EFACEDAA294489AA00DDD16E /* AppCore in Frameworks */ = {isa = PBXBuildFile; productRef = EFACEDA9294489AA00DDD16E /* AppCore */; };
 		EFB17D642944831200AC956F /* StockPhotoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFB17D632944831200AC956F /* StockPhotoApp.swift */; };
 		EFB17D662944831200AC956F /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFB17D652944831200AC956F /* RootView.swift */; };
@@ -32,6 +33,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				EFCC38BA2974DB4300F64004 /* AppUI in Frameworks */,
+				EF9D2015297E2BFE0064F061 /* ImageSegmentationClientImpl in Frameworks */,
 				EFACEDAA294489AA00DDD16E /* AppCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -104,6 +106,7 @@
 			packageProductDependencies = (
 				EFACEDA9294489AA00DDD16E /* AppCore */,
 				EFCC38B92974DB4300F64004 /* AppUI */,
+				EF9D2014297E2BFE0064F061 /* ImageSegmentationClientImpl */,
 			);
 			productName = StockPhoto;
 			productReference = EFB17D602944831200AC956F /* StockPhoto.app */;
@@ -373,6 +376,10 @@
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		EF9D2014297E2BFE0064F061 /* ImageSegmentationClientImpl */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ImageSegmentationClientImpl;
+		};
 		EFACEDA9294489AA00DDD16E /* AppCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = AppCore;
