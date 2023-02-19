@@ -20,7 +20,7 @@ extension ImageSegmentationClient: DependencyKey {
                     throw ImageSegmentationError.errorCreatingPixelBuffer
                 }
 
-                let outputPredictionImage = try model.prediction(x_1: pixelBuffer)
+                let outputPredictionImage = try model.prediction(input_1: pixelBuffer)
 
                 let rawMask: CVPixelBuffer?
                 if request.requestedContents.contains(.rawMask) {
