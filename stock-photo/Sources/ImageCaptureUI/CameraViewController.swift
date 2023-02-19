@@ -72,50 +72,6 @@ class CameraViewController: UIViewController {
         cameraUnavailableLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(cameraUnavailableLabel)
 
-        capturingLivePhotoLabel = UILabel()
-        capturingLivePhotoLabel.textColor = .systemYellow
-        capturingLivePhotoLabel.text = "Live"
-        capturingLivePhotoLabel.font = .systemFont(ofSize: 25)
-        capturingLivePhotoLabel.isHidden = true
-        capturingLivePhotoLabel.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(capturingLivePhotoLabel)
-
-        depthDataDeliveryButton = UIButton(type: .custom)
-        depthDataDeliveryButton.setImage(UIImage(named: "DepthON", in: .module, with: nil)!, for: .normal)
-        depthDataDeliveryButton.addTarget(self, action: #selector(toggleDepthDataDeliveryMode), for: .touchUpInside)
-        depthDataDeliveryButton.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(depthDataDeliveryButton)
-
-        HDRVideoModeButton = UIButton(type: .system)
-        HDRVideoModeButton.setTitle("HDR On", for: .normal)
-        HDRVideoModeButton.addTarget(self, action: #selector(toggleHDRVideoMode), for: .touchUpInside)
-        HDRVideoModeButton.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(HDRVideoModeButton)
-
-        portraitEffectsMatteDeliveryButton = UIButton(type: .custom)
-        portraitEffectsMatteDeliveryButton.setImage(UIImage(named: "PortraitMatteON", in: .module, with: nil)!, for: .normal)
-        portraitEffectsMatteDeliveryButton.addTarget(self, action: #selector(togglePortraitEffectsMatteDeliveryMode), for: .touchUpInside)
-        portraitEffectsMatteDeliveryButton.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(portraitEffectsMatteDeliveryButton)
-
-        photoQualityPrioritizationSegControl = UISegmentedControl(
-            items: [
-                "Speed",
-                "Balanced",
-                "Quality"
-            ]
-        )
-        photoQualityPrioritizationSegControl.selectedSegmentIndex = 1
-        photoQualityPrioritizationSegControl.addTarget(self, action: #selector(togglePhotoQualityPrioritizationMode), for: .valueChanged)
-        photoQualityPrioritizationSegControl.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(photoQualityPrioritizationSegControl)
-
-        livePhotoModeButton = UIButton(type: .custom)
-        livePhotoModeButton.setImage(UIImage(named: "LivePhotoON", in: .module, with: nil)!, for: .normal)
-        livePhotoModeButton.addTarget(self, action: #selector(toggleLivePhotoMode), for: .touchUpInside)
-        livePhotoModeButton.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(livePhotoModeButton)
-
         // Set up constraints
 
         previewView.leadingAnchor.constraint(equalTo: view.leadingAnchor).isActive = true
@@ -123,7 +79,7 @@ class CameraViewController: UIViewController {
         previewView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
         previewView.bottomAnchor.constraint(equalTo: view.bottomAnchor).isActive = true
 
-        photoButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -40).isActive = true
+        photoButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20).isActive = true
         photoButton.widthAnchor.constraint(equalTo: photoButton.heightAnchor).isActive = true
         photoButton.heightAnchor.constraint(equalToConstant: 60).isActive = true
         photoButton.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
@@ -139,41 +95,9 @@ class CameraViewController: UIViewController {
         cameraUnavailableLabel.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor).isActive = true
         cameraUnavailableLabel.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor).isActive = true
 
-        livePhotoModeButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 30).isActive = true
-        livePhotoModeButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20).isActive = true
-        livePhotoModeButton.widthAnchor.constraint(equalTo: livePhotoModeButton.heightAnchor).isActive = true
-        livePhotoModeButton.heightAnchor.constraint(equalToConstant: 50).isActive = true
-
-        depthDataDeliveryButton.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor, constant: -50).isActive = true
-        depthDataDeliveryButton.topAnchor.constraint(equalTo: livePhotoModeButton.topAnchor).isActive = true
-        depthDataDeliveryButton.widthAnchor.constraint(equalTo: depthDataDeliveryButton.heightAnchor).isActive = true
-        depthDataDeliveryButton.heightAnchor.constraint(equalTo: livePhotoModeButton.heightAnchor).isActive = true
-
-        portraitEffectsMatteDeliveryButton.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor, constant: 50).isActive = true
-        portraitEffectsMatteDeliveryButton.topAnchor.constraint(equalTo: livePhotoModeButton.topAnchor).isActive = true
-        portraitEffectsMatteDeliveryButton.widthAnchor.constraint(equalTo: portraitEffectsMatteDeliveryButton.heightAnchor).isActive = true
-        portraitEffectsMatteDeliveryButton.heightAnchor.constraint(equalTo: livePhotoModeButton.heightAnchor).isActive = true
-
-        photoQualityPrioritizationSegControl.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor).isActive = true
-        photoQualityPrioritizationSegControl.topAnchor.constraint(equalTo: livePhotoModeButton.bottomAnchor, constant: 15).isActive = true
-        photoQualityPrioritizationSegControl.heightAnchor.constraint(equalToConstant: 25).isActive = true
-
-        capturingLivePhotoLabel.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor).isActive = true
-        capturingLivePhotoLabel.topAnchor.constraint(equalTo: photoQualityPrioritizationSegControl.bottomAnchor, constant: 15).isActive = true
-
-        HDRVideoModeButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 80).isActive = true
-        HDRVideoModeButton.centerXAnchor.constraint(equalTo: previewView.centerXAnchor).isActive = true
-        HDRVideoModeButton.heightAnchor.constraint(equalToConstant: 50).isActive = true
-        HDRVideoModeButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20).isActive = true
-
         // Disable the UI. Enable the UI later, if and only if the session starts running.
         cameraButton.isEnabled = false
         photoButton.isEnabled = false
-        livePhotoModeButton.isEnabled = false
-        depthDataDeliveryButton.isEnabled = false
-        portraitEffectsMatteDeliveryButton.isEnabled = false
-        photoQualityPrioritizationSegControl.isEnabled = false
-        HDRVideoModeButton.isHidden = true
         cameraUnavailableLabel.isHighlighted = true
 
         // Set up the video preview view.
@@ -311,6 +235,12 @@ class CameraViewController: UIViewController {
 
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return .all
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+
+        previewView.videoPreviewLayer.videoGravity = .resizeAspectFill
     }
 
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -458,10 +388,6 @@ class CameraViewController: UIViewController {
             photoOutput.enabledSemanticSegmentationMatteTypes = photoOutput.availableSemanticSegmentationMatteTypes
             selectedSemanticSegmentationMatteTypes = photoOutput.availableSemanticSegmentationMatteTypes
             photoOutput.maxPhotoQualityPrioritization = .quality
-            livePhotoMode = photoOutput.isLivePhotoCaptureSupported ? .on : .off
-            depthDataDeliveryMode = photoOutput.isDepthDataDeliverySupported ? .on : .off
-            portraitEffectsMatteDeliveryMode = photoOutput.isPortraitEffectsMatteDeliverySupported ? .on : .off
-            photoQualityPrioritizationMode = .balanced
 
         } else {
             print("Could not add photo output to the session")
@@ -532,12 +458,6 @@ class CameraViewController: UIViewController {
     @objc private func changeCamera(_ cameraButton: UIButton) {
         cameraButton.isEnabled = false
         photoButton.isEnabled = false
-        livePhotoModeButton.isEnabled = false
-        depthDataDeliveryButton.isEnabled = false
-        portraitEffectsMatteDeliveryButton.isEnabled = false
-        photoQualityPrioritizationSegControl.isEnabled = false
-        HDRVideoModeButton.isEnabled = false
-        self.selectedMovieMode10BitDeviceFormat = nil
 
         sessionQueue.async {
             let currentVideoDevice = self.videoDeviceInput.device
@@ -609,10 +529,6 @@ class CameraViewController: UIViewController {
             DispatchQueue.main.async {
                 self.cameraButton.isEnabled = true
                 self.photoButton.isEnabled = true
-                self.livePhotoModeButton.isEnabled = true
-                self.depthDataDeliveryButton.isEnabled = self.photoOutput.isDepthDataDeliveryEnabled
-                self.portraitEffectsMatteDeliveryButton.isEnabled = self.photoOutput.isPortraitEffectsMatteDeliveryEnabled
-                self.photoQualityPrioritizationSegControl.isEnabled = true
             }
         }
     }
@@ -714,25 +630,20 @@ class CameraViewController: UIViewController {
                 photoSettings.previewPhotoFormat = [kCVPixelBufferPixelFormatTypeKey as String: previewPhotoPixelFormatType]
             }
             // Live Photo capture is not supported in movie mode.
-            if self.livePhotoMode == .on && self.photoOutput.isLivePhotoCaptureSupported {
+            if  self.photoOutput.isLivePhotoCaptureSupported {
                 let livePhotoMovieFileName = NSUUID().uuidString
                 let livePhotoMovieFilePath = (NSTemporaryDirectory() as NSString).appendingPathComponent((livePhotoMovieFileName as NSString).appendingPathExtension("mov")!)
                 photoSettings.livePhotoMovieFileURL = URL(fileURLWithPath: livePhotoMovieFilePath)
             }
 
-            photoSettings.isDepthDataDeliveryEnabled = (self.depthDataDeliveryMode == .on
-                && self.photoOutput.isDepthDataDeliveryEnabled)
-
-            photoSettings.isPortraitEffectsMatteDeliveryEnabled = (self.portraitEffectsMatteDeliveryMode == .on
-                && self.photoOutput.isPortraitEffectsMatteDeliveryEnabled)
+            photoSettings.isDepthDataDeliveryEnabled = self.photoOutput.isDepthDataDeliveryEnabled
+            photoSettings.isPortraitEffectsMatteDeliveryEnabled = self.photoOutput.isPortraitEffectsMatteDeliveryEnabled
 
             if photoSettings.isDepthDataDeliveryEnabled {
                 if !self.photoOutput.availableSemanticSegmentationMatteTypes.isEmpty {
                     photoSettings.enabledSemanticSegmentationMatteTypes = self.selectedSemanticSegmentationMatteTypes
                 }
             }
-
-            photoSettings.photoQualityPrioritization = self.photoQualityPrioritizationMode
 
             let photoCaptureProcessor = PhotoCaptureProcessor(
                 with: photoSettings,
@@ -751,17 +662,6 @@ class CameraViewController: UIViewController {
                             self.inProgressLivePhotoCapturesCount += 1
                         } else {
                             self.inProgressLivePhotoCapturesCount -= 1
-                        }
-
-                        let inProgressLivePhotoCapturesCount = self.inProgressLivePhotoCapturesCount
-                        DispatchQueue.main.async {
-                            if inProgressLivePhotoCapturesCount > 0 {
-                                self.capturingLivePhotoLabel.isHidden = false
-                            } else if inProgressLivePhotoCapturesCount == 0 {
-                                self.capturingLivePhotoLabel.isHidden = true
-                            } else {
-                                print("Error: In progress Live Photo capture count is less than 0.")
-                            }
                         }
                     }
                 }, completionHandler: { photoCaptureProcessor in
@@ -792,185 +692,7 @@ class CameraViewController: UIViewController {
         }
     }
 
-    private enum LivePhotoMode {
-        case on
-        case off
-    }
-
-    private enum DepthDataDeliveryMode {
-        case on
-        case off
-    }
-
-    private enum PortraitEffectsMatteDeliveryMode {
-        case on
-        case off
-    }
-
-    private var livePhotoMode: LivePhotoMode = .off
-
-    private var livePhotoModeButton: UIButton!
-
-    @objc private func toggleLivePhotoMode(_ livePhotoModeButton: UIButton) {
-        sessionQueue.async {
-            self.livePhotoMode = (self.livePhotoMode == .on) ? .off : .on
-            let livePhotoMode = self.livePhotoMode
-
-            DispatchQueue.main.async {
-                if livePhotoMode == .on {
-                    self.livePhotoModeButton.setImage(UIImage(named: "LivePhotoON", in: .module, with: nil), for: [])
-                } else {
-                    self.livePhotoModeButton.setImage(UIImage(named: "LivePhotoOFF", in: .module, with: nil), for: [])
-                }
-            }
-        }
-    }
-
-    private var depthDataDeliveryMode: DepthDataDeliveryMode = .off
-
-    private var depthDataDeliveryButton: UIButton!
-
-    @objc func toggleDepthDataDeliveryMode(_ depthDataDeliveryButton: UIButton) {
-        sessionQueue.async {
-            self.depthDataDeliveryMode = (self.depthDataDeliveryMode == .on) ? .off : .on
-            let depthDataDeliveryMode = self.depthDataDeliveryMode
-            if depthDataDeliveryMode == .on {
-                self.portraitEffectsMatteDeliveryMode = .on
-            } else {
-                self.portraitEffectsMatteDeliveryMode = .off
-            }
-
-            DispatchQueue.main.async {
-                if depthDataDeliveryMode == .on {
-                    self.depthDataDeliveryButton.setImage(UIImage(named: "DepthON", in: .module, with: nil), for: [])
-                    self.portraitEffectsMatteDeliveryButton.setImage(UIImage(named: "PortraitMatteON", in: .module, with: nil), for: [])
-                } else {
-                    self.depthDataDeliveryButton.setImage(UIImage(named: "DepthOFF", in: .module, with: nil), for: [])
-                    self.portraitEffectsMatteDeliveryButton.setImage(UIImage(named: "PortraitMatteOFF", in: .module, with: nil), for: [])
-                }
-            }
-        }
-    }
-
-    private var portraitEffectsMatteDeliveryMode: PortraitEffectsMatteDeliveryMode = .off
-
-    private var portraitEffectsMatteDeliveryButton: UIButton!
-
-    @objc func togglePortraitEffectsMatteDeliveryMode(_ portraitEffectsMatteDeliveryButton: UIButton) {
-        sessionQueue.async {
-            if self.portraitEffectsMatteDeliveryMode == .on {
-                self.portraitEffectsMatteDeliveryMode = .off
-            } else {
-                self.portraitEffectsMatteDeliveryMode = (self.depthDataDeliveryMode == .off) ? .off : .on
-            }
-            let portraitEffectsMatteDeliveryMode = self.portraitEffectsMatteDeliveryMode
-
-            DispatchQueue.main.async {
-                if portraitEffectsMatteDeliveryMode == .on {
-                    self.portraitEffectsMatteDeliveryButton.setImage(UIImage(named: "PortraitMatteON", in: .module, with: nil), for: [])
-                } else {
-                    self.portraitEffectsMatteDeliveryButton.setImage(UIImage(named: "PortraitMatteOFF", in: .module, with: nil), for: [])
-                }
-            }
-        }
-    }
-
-    private var photoQualityPrioritizationMode: AVCapturePhotoOutput.QualityPrioritization = .balanced
-
-    private var photoQualityPrioritizationSegControl: UISegmentedControl!
-
-    @objc func togglePhotoQualityPrioritizationMode(_ photoQualityPrioritizationSegControl: UISegmentedControl) {
-        let selectedQuality = photoQualityPrioritizationSegControl.selectedSegmentIndex
-        sessionQueue.async {
-            switch selectedQuality {
-            case 0 :
-                self.photoQualityPrioritizationMode = .speed
-            case 1 :
-                self.photoQualityPrioritizationMode = .balanced
-            case 2 :
-                self.photoQualityPrioritizationMode = .quality
-            default:
-                break
-            }
-        }
-    }
-
-    func tenBitVariantOfFormat(activeFormat: AVCaptureDevice.Format) -> AVCaptureDevice.Format? {
-        let formats = self.videoDeviceInput.device.formats
-        let formatIndex = formats.firstIndex(of: activeFormat)!
-
-        let activeDimensions = CMVideoFormatDescriptionGetDimensions(activeFormat.formatDescription)
-        let activeMaxFrameRate = activeFormat.videoSupportedFrameRateRanges.last?.maxFrameRate
-        let activePixelFormat = CMFormatDescriptionGetMediaSubType(activeFormat.formatDescription)
-
-        /*
-         AVCaptureDeviceFormats are sorted from smallest to largest in resolution and frame rate.
-         For each resolution and max frame rate there's a cluster of formats that only differ in pixelFormatType.
-         Here, we're looking for an 'x420' variant of the current activeFormat.
-        */
-        if activePixelFormat != kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange {
-            // Current activeFormat is not a 10-bit HDR format, find its 10-bit HDR variant.
-            for index in formatIndex + 1..<formats.count {
-                let format = formats[index]
-                let dimensions = CMVideoFormatDescriptionGetDimensions(format.formatDescription)
-                let maxFrameRate = format.videoSupportedFrameRateRanges.last?.maxFrameRate
-                let pixelFormat = CMFormatDescriptionGetMediaSubType(format.formatDescription)
-
-                // Don't advance beyond the current format cluster
-                if activeMaxFrameRate != maxFrameRate || activeDimensions.width != dimensions.width || activeDimensions.height != dimensions.height {
-                    break
-                }
-
-                if pixelFormat == kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange {
-                    return format
-                }
-            }
-        } else {
-            return activeFormat
-        }
-
-        return nil
-    }
-
-    private var selectedMovieMode10BitDeviceFormat: AVCaptureDevice.Format?
-
-    private enum HDRVideoMode {
-        case on
-        case off
-    }
-
-    private var HDRVideoMode: HDRVideoMode = .on
-
-    private var HDRVideoModeButton: UIButton!
-
-    @objc private func toggleHDRVideoMode(_ HDRVideoModeButton: UIButton) {
-        sessionQueue.async {
-            self.HDRVideoMode = (self.HDRVideoMode == .on) ? .off : .on
-            let HDRVideoMode = self.HDRVideoMode
-
-            DispatchQueue.main.async {
-                if HDRVideoMode == .on {
-                    do {
-                        try self.videoDeviceInput.device.lockForConfiguration()
-                        self.videoDeviceInput.device.activeFormat = self.selectedMovieMode10BitDeviceFormat!
-                        self.videoDeviceInput.device.unlockForConfiguration()
-                    } catch {
-                        print("Could not lock device for configuration: \(error)")
-                    }
-                    self.HDRVideoModeButton.setTitle("HDR On", for: .normal)
-                } else {
-                    self.session.beginConfiguration()
-                    self.session.sessionPreset = .high
-                    self.session.commitConfiguration()
-                    self.HDRVideoModeButton.setTitle("HDR Off", for: .normal)
-                }
-            }
-        }
-    }
-
     private var inProgressLivePhotoCapturesCount = 0
-
-    private var capturingLivePhotoLabel: UILabel!
 
     private var resumeButton: UIButton!
 
@@ -981,18 +703,11 @@ class CameraViewController: UIViewController {
     private func addObservers() {
         let keyValueObservation = session.observe(\.isRunning, options: .new) { _, change in
             guard let isSessionRunning = change.newValue else { return }
-            let isLivePhotoCaptureEnabled = self.photoOutput.isLivePhotoCaptureEnabled
-            let isDepthDeliveryDataEnabled = self.photoOutput.isDepthDataDeliveryEnabled
-            let isPortraitEffectsMatteEnabled = self.photoOutput.isPortraitEffectsMatteDeliveryEnabled
 
             DispatchQueue.main.async {
                 // Only enable the ability to change camera if the device has more than one camera.
                 self.cameraButton.isEnabled = isSessionRunning && self.videoDeviceDiscoverySession.uniqueDevicePositionsCount > 1
                 self.photoButton.isEnabled = isSessionRunning
-                self.livePhotoModeButton.isEnabled = isSessionRunning && isLivePhotoCaptureEnabled
-                self.depthDataDeliveryButton.isEnabled = isSessionRunning && isDepthDeliveryDataEnabled
-                self.portraitEffectsMatteDeliveryButton.isEnabled = isSessionRunning && isPortraitEffectsMatteEnabled
-                self.photoQualityPrioritizationSegControl.isEnabled = isSessionRunning
             }
         }
         keyValueObservations.append(keyValueObservation)

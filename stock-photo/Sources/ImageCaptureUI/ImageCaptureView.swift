@@ -18,6 +18,7 @@ public struct ImageCaptureView: View {
                     )
                 }
             )
+            .ignoresSafeArea()
             .sheet(
                 item: Binding(
                     get: {
