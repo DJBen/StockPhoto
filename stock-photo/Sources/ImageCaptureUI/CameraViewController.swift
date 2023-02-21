@@ -28,10 +28,10 @@ class CameraViewController: UIViewController {
 
     let locationManager = CLLocationManager()
 
-    var selectedZoomLevel: ZoomSwitcherView.ZoomLevel = .base
+    let zoomSwitcherModel = ZoomSwitcherViewModel(selectedZoomLevel: .base)
 
     func selectedZoomLevelChanged(_ newZoomLevel: ZoomSwitcherView.ZoomLevel) {
-        self.selectedZoomLevel = newZoomLevel
+        self.zoomSwitcherModel.selectedZoomLevel = newZoomLevel
     }
 
     // MARK: View Controller Life Cycle
@@ -111,12 +111,7 @@ class CameraViewController: UIViewController {
         previewView.session = session
 
         let zoomSwitcherView = ZoomSwitcherView(
-            selectedZoomLevel: Binding<ZoomSwitcherView.ZoomLevel>(
-                get: {
-                    self.selectedZoomLevel
-                },
-                set: self.selectedZoomLevelChanged
-            )
+            model: zoomSwitcherModel
         )
         let hostingController = UIHostingController(rootView: zoomSwitcherView)
         addChild(hostingController)

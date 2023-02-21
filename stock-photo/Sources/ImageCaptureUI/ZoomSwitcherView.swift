@@ -1,5 +1,13 @@
 import SwiftUI
 
+class ZoomSwitcherViewModel: ObservableObject  {
+    @Published var selectedZoomLevel: ZoomSwitcherView.ZoomLevel
+    
+    init(selectedZoomLevel: ZoomSwitcherView.ZoomLevel) {
+        self.selectedZoomLevel = selectedZoomLevel
+    }
+}
+
 struct ZoomSwitcherView: View {
     public enum ZoomLevel: Int, CaseIterable {
         case base = 0
@@ -7,39 +15,40 @@ struct ZoomSwitcherView: View {
         case triple
     }
 
-    @Binding var selectedZoomLevel: ZoomLevel
-
+    @ObservedObject var model: ZoomSwitcherViewModel
+    
     let color = Color.black
 
-    private func title(for zoomLevel: ZoomLevel) -> String {
+    private func title(for zoomLevel: ZoomLevel, isSelected: Bool) -> String {
         switch zoomLevel {
         case .base:
-            return "1x"
+            return isSelected ? "1x" : "1"
         case .double:
-            return "2x"
+            return isSelected ? "2x" : "2"
         case .triple:
-            return "3x"
+            return isSelected ? "3x" : "3"
         }
     }
 
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 16) {
             ForEach(ZoomLevel.allCases, id: \.rawValue) { zoomLevel in
                 Button(action: {
                     withAnimation(.interactiveSpring()) {
-                        selectedZoomLevel = zoomLevel
+                        model.selectedZoomLevel = zoomLevel
                     }
                 }) {
-                    let scale = selectedZoomLevel == zoomLevel ? 1 : 0.75
+                    let scale = model.selectedZoomLevel == zoomLevel ? 1 : 0.75
 
                     Text(
-                        title(for: zoomLevel)
+                        title(for: zoomLevel, isSelected: model.selectedZoomLevel == zoomLevel)
                     )
-                    .font(.system(size: selectedZoomLevel == zoomLevel ? 14 : 10, design: .rounded).bold())
-                    .foregroundColor(Color(uiColor: selectedZoomLevel == zoomLevel ? UIColor.systemYellow : UIColor.white))
+                    .font(.system(size: model.selectedZoomLevel == zoomLevel ? 14 : 10, design: .rounded).bold())
+                    .foregroundColor(Color(uiColor: model.selectedZoomLevel == zoomLevel ? UIColor.systemYellow : UIColor.white))
+                    .fixedSize()
                     .padding(.vertical, 10 * scale)
                     .padding(.horizontal, 10 * scale)
-                    .background(color.opacity(0.75))
+                    .background(color.opacity(0.5))
                     .cornerRadius(10)
                     .clipShape(Circle())
                 }
@@ -62,11 +71,11 @@ struct ZoomSwitcherButtonStyle: ButtonStyle {
 
 struct ZoomSwitcherView_Previews: PreviewProvider {
     struct ContentView: View {
-        @State private var selectedZoomLevel: ZoomSwitcherView.ZoomLevel = .base
+        @StateObject private var model: ZoomSwitcherViewModel = .init(selectedZoomLevel: .base)
         var body: some View {
             VStack {
                 ZoomSwitcherView(
-                    selectedZoomLevel: $selectedZoomLevel
+                    model: model
                 )
             }
         }
