@@ -10,6 +10,7 @@ import AVFoundation
 import DeviceExtension
 import CoreLocation
 import Photos
+import SwiftUI
 
 @objc protocol CameraViewControllerDelegate {
     func didFinishProcessingPhoto(_ photo: UIImage, depthData: AVDepthData?)
@@ -26,6 +27,12 @@ class CameraViewController: UIViewController {
     }
 
     let locationManager = CLLocationManager()
+
+    var selectedZoomLevel: ZoomSwitcherView.ZoomLevel = .base
+
+    func selectedZoomLevelChanged(_ newZoomLevel: ZoomSwitcherView.ZoomLevel) {
+        self.selectedZoomLevel = newZoomLevel
+    }
 
     // MARK: View Controller Life Cycle
 
@@ -102,6 +109,23 @@ class CameraViewController: UIViewController {
 
         // Set up the video preview view.
         previewView.session = session
+
+        let zoomSwitcherView = ZoomSwitcherView(
+            selectedZoomLevel: Binding<ZoomSwitcherView.ZoomLevel>(
+                get: {
+                    self.selectedZoomLevel
+                },
+                set: self.selectedZoomLevelChanged
+            )
+        )
+        let hostingController = UIHostingController(rootView: zoomSwitcherView)
+        addChild(hostingController)
+        view.addSubview(hostingController.view)
+        hostingController.didMove(toParent: self)
+        hostingController.view.backgroundColor = nil
+        hostingController.view.translatesAutoresizingMaskIntoConstraints = false
+        hostingController.view.bottomAnchor.constraint(equalTo: photoButton.topAnchor, constant: -40).isActive = true
+        hostingController.view.centerXAnchor.constraint(equalTo: photoButton.centerXAnchor).isActive = true
 
         // Request location authorization so photos and videos can be tagged with their location.
         if locationManager.authorizationStatus == .notDetermined {
@@ -322,6 +346,7 @@ class CameraViewController: UIViewController {
             print("min: \(videoDevice.minAvailableVideoZoomFactor)")
             print("zooms: \(videoDevice.virtualDeviceSwitchOverVideoZoomFactors)")
             print("max: \(videoDevice.maxAvailableVideoZoomFactor)")
+            print("depth supported: \(videoDevice.activeFormat.supportedVideoZoomFactorsForDepthDataDelivery)")
 
             let videoDeviceInput = try AVCaptureDeviceInput(device: videoDevice)
 
