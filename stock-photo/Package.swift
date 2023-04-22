@@ -21,11 +21,15 @@ let package = Package(
     dependencies: [
         .package(
             url: "https://github.com/pointfreeco/swift-composable-architecture.git",
-            from: Version(0, 47, 2)
+            from: Version(0, 52, 0)
+        ),
+        .package(
+            url: "https://github.com/pointfreeco/swift-dependencies.git",
+            from: Version(0, 4, 1)
         ),
         .package(
             url: "https://github.com/pointfreeco/swift-snapshot-testing.git",
-            from: Version(1, 10, 0)
+            from: Version(1, 11, 0)
         )
     ],
     targets: [
@@ -78,7 +82,7 @@ let package = Package(
         .target(
             name: "ImageSegmentationClient",
             dependencies: [
-                .product(name: "Dependencies", package: "swift-composable-architecture")
+                .product(name: "Dependencies", package: "swift-dependencies")
             ]
         ),
         .target(
