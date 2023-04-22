@@ -5,11 +5,13 @@ Abstract:
 The app's primary view controller that presents the camera interface.
 */
 
-import UIKit
 import AVFoundation
+import Combine
+import UIKit
 import DeviceExtension
 import CoreLocation
 import Photos
+import SwiftUI
 
 @objc protocol CameraViewControllerDelegate {
     func didFinishProcessingPhoto(_ photo: UIImage, depthData: AVDepthData?)
@@ -26,14 +28,30 @@ class CameraViewController: UIViewController {
     }
 
     let locationManager = CLLocationManager()
+    
+    private var cancellables = Set<AnyCancellable>()
+
+    let zoomSwitcherModel = ZoomSwitcherViewModel(selectedZoomLevel: ZoomLevel(zoom: 0, label: "x"), supportedZoomLevels: [])
+    
+    func selectedZoomLevelChanged(_ newZoomLevel: ZoomLevel) {
+        guard let videoDeviceInput = videoDeviceInput else {
+            return
+        }
+        switchToZoomLevel(newZoomLevel, currentVideoDevice: videoDeviceInput.device)
+    }
 
     // MARK: View Controller Life Cycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        // Bind models
+        zoomSwitcherModel.$selectedZoomLevel.sink(
+            receiveValue: selectedZoomLevelChanged
+        )
+        .store(in: &cancellables)
+        
         // Initialize UI
-
         previewView = PreviewView()
         previewView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(previewView)
@@ -102,6 +120,18 @@ class CameraViewController: UIViewController {
 
         // Set up the video preview view.
         previewView.session = session
+
+        let zoomSwitcherView = ZoomSwitcherView(
+            model: zoomSwitcherModel
+        )
+        let hostingController = UIHostingController(rootView: zoomSwitcherView)
+        addChild(hostingController)
+        view.addSubview(hostingController.view)
+        hostingController.didMove(toParent: self)
+        hostingController.view.backgroundColor = nil
+        hostingController.view.translatesAutoresizingMaskIntoConstraints = false
+        hostingController.view.bottomAnchor.constraint(equalTo: photoButton.topAnchor, constant: -40).isActive = true
+        hostingController.view.centerXAnchor.constraint(equalTo: photoButton.centerXAnchor).isActive = true
 
         // Request location authorization so photos and videos can be tagged with their location.
         if locationManager.authorizationStatus == .notDetermined {
@@ -295,41 +325,28 @@ class CameraViewController: UIViewController {
 
         // Add video input.
         do {
-            var defaultVideoDevice: AVCaptureDevice?
-
-            // Choose the back dual camera, if available, otherwise default to a wide angle camera.
-
-            if let dualCameraDevice = AVCaptureDevice.default(.builtInDualCamera, for: .video, position: .back) {
-                defaultVideoDevice = dualCameraDevice
-            } else if let dualWideCameraDevice = AVCaptureDevice.default(.builtInDualWideCamera, for: .video, position: .back) {
-                // If a rear dual camera is not available, default to the rear dual wide camera.
-                defaultVideoDevice = dualWideCameraDevice
-            } else if let backCameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) {
-                // If a rear dual wide camera is not available, default to the rear wide angle camera.
-                defaultVideoDevice = backCameraDevice
-            } else if let frontCameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) {
-                // If the rear wide angle camera isn't available, default to the front wide angle camera.
-                defaultVideoDevice = frontCameraDevice
-            }
-            guard let videoDevice = defaultVideoDevice else {
-                print("Default video device is unavailable.")
+            updateVideoDeviceDiscoverySession(
+                position: .back
+            )
+            
+            guard let defaultDeviceZooms = deviceZooms.min(by: { $0.1.min()! < $1.1.min()! }) else {
                 setupResult = .configurationFailed
                 session.commitConfiguration()
                 return
             }
-
-            print("current: \(videoDevice.videoZoomFactor)")
-            print("min: \(videoDevice.minAvailableVideoZoomFactor)")
-            print("zooms: \(videoDevice.virtualDeviceSwitchOverVideoZoomFactors)")
-            print("max: \(videoDevice.maxAvailableVideoZoomFactor)")
-
+            
+            let videoDevice = defaultDeviceZooms.0
+            let defaultZoom = CGFloat(defaultDeviceZooms.1.min()!)
+            
             let videoDeviceInput = try AVCaptureDeviceInput(device: videoDevice)
 
             if session.canAddInput(videoDeviceInput) {
                 session.addInput(videoDeviceInput)
                 self.videoDeviceInput = videoDeviceInput
-
-                setDefaultZoom(videoDevice: videoDevice)
+                
+                try videoDevice.lockForConfiguration()
+                videoDevice.videoZoomFactor = defaultZoom
+                videoDevice.unlockForConfiguration()
 
                 DispatchQueue.main.async {
                     /*
@@ -399,22 +416,6 @@ class CameraViewController: UIViewController {
         session.commitConfiguration()
     }
 
-    private func setDefaultZoom(videoDevice: AVCaptureDevice) {
-        do {
-            try videoDevice.lockForConfiguration()
-            switch videoDevice.deviceType {
-            case .builtInTripleCamera, .builtInDualWideCamera:
-                videoDevice.videoZoomFactor = 2
-                previousVideoZoomFactor = 2
-            default:
-                break
-            }
-            videoDevice.unlockForConfiguration()
-        } catch {
-            print("Could not lock device for configuration: \(error)")
-        }
-    }
-
     @objc private func resumeInterruptedSession(_ resumeButton: UIButton) {
         sessionQueue.async {
             /*
@@ -448,83 +449,119 @@ class CameraViewController: UIViewController {
 
     private var cameraUnavailableLabel: UILabel!
 
-    private let videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(
-        deviceTypes: [.builtInDualCamera, .builtInDualWideCamera, .builtInWideAngleCamera],
+    private var videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(
+        deviceTypes: [.builtInDualWideCamera, .builtInDualCamera, .builtInWideAngleCamera],
         mediaType: .video,
-        position: .unspecified
+        position: .back
     )
+    
+    private var deviceZooms: [(AVCaptureDevice, [Int])] = []
+    
+    private func updateVideoDeviceDiscoverySession(position: AVCaptureDevice.Position) {
+        switch position {
+        case .unspecified, .front:
+            videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(
+                deviceTypes: [.builtInDualWideCamera, .builtInDualCamera, .builtInWideAngleCamera],
+                mediaType: .video,
+                position: .front
+            )
+        case .back:
+            videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(
+                deviceTypes: [.builtInDualWideCamera, .builtInDualCamera, .builtInWideAngleCamera],
+                mediaType: .video,
+                position: .back
+            )
+        @unknown default:
+            break
+        }
+        
+        // Return all the devices that supports depth data delivery
+        deviceZooms = videoDeviceDiscoverySession.devices.map { device in
+            let zooms = device.activeFormat.supportedVideoZoomFactorsForDepthDataDelivery.map { Int($0) }
+            return (device, zooms)
+        }
+        .filter { !$1.isEmpty }
+        
+        zoomSwitcherModel.supportedZoomLevels = deviceZooms.flatMap { device, zooms in
+            switch device.deviceType {
+            case .builtInDualCamera:
+                return zooms.map { ZoomLevel(zoom: $0, label: "\($0)") }
+            case .builtInDualWideCamera:
+                return zooms.map { ZoomLevel(zoom: $0, label: "\($0 / 2)") }
+            default:
+                return zooms.map { ZoomLevel(zoom: $0, label: "\($0)") }
+            }
+        }
+        
+        if let defaultZoomLevel = zoomSwitcherModel.supportedZoomLevels.first {
+            zoomSwitcherModel.selectedZoomLevel = defaultZoomLevel
+        }
+    }
 
+    private func switchToZoomLevel(_ zoomLevel: ZoomLevel, currentVideoDevice: AVCaptureDevice) {
+        guard let videoDevice = deviceZooms.first(
+            where: { $0.0.activeFormat.supportedVideoZoomFactorsForDepthDataDelivery.contains(CGFloat(zoomLevel.zoom))
+            }
+        )?.0 else {
+            return
+        }
+        
+        do {
+            let videoDeviceInput = try AVCaptureDeviceInput(device: videoDevice)
+
+            self.session.beginConfiguration()
+
+            // Remove the existing device input first, because AVCaptureSession doesn't support
+            // simultaneous use of the rear and front cameras.
+            self.session.removeInput(self.videoDeviceInput)
+
+            if self.session.canAddInput(videoDeviceInput) {
+                NotificationCenter.default.removeObserver(self, name: .AVCaptureDeviceSubjectAreaDidChange, object: currentVideoDevice)
+                NotificationCenter.default.addObserver(self, selector: #selector(self.subjectAreaDidChange), name: .AVCaptureDeviceSubjectAreaDidChange, object: videoDeviceInput.device)
+
+                self.session.addInput(videoDeviceInput)
+                self.videoDeviceInput = videoDeviceInput
+            } else {
+                self.session.addInput(self.videoDeviceInput)
+            }
+            
+            try videoDevice.lockForConfiguration()
+            videoDevice.videoZoomFactor = CGFloat(zoomLevel.zoom)
+            videoDevice.unlockForConfiguration()
+
+            /*
+             Set Live Photo capture and depth data delivery if it's supported. When changing cameras, the
+             `livePhotoCaptureEnabled` and `depthDataDeliveryEnabled` properties of the AVCapturePhotoOutput
+             get set to false when a video device is disconnected from the session. After the new video device is
+             added to the session, re-enable them on the AVCapturePhotoOutput, if supported.
+             */
+            self.photoOutput.isLivePhotoCaptureEnabled = self.photoOutput.isLivePhotoCaptureSupported
+            self.photoOutput.isDepthDataDeliveryEnabled = self.photoOutput.isDepthDataDeliverySupported
+            self.photoOutput.isPortraitEffectsMatteDeliveryEnabled = self.photoOutput.isPortraitEffectsMatteDeliverySupported
+            self.photoOutput.enabledSemanticSegmentationMatteTypes = self.photoOutput.availableSemanticSegmentationMatteTypes
+            self.selectedSemanticSegmentationMatteTypes = self.photoOutput.availableSemanticSegmentationMatteTypes
+            self.photoOutput.maxPhotoQualityPrioritization = .quality
+
+            self.session.commitConfiguration()
+        } catch {
+            print("Error occurred while creating video device input: \(error)")
+        }
+    }
+    
     /// - Tag: ChangeCamera
     @objc private func changeCamera(_ cameraButton: UIButton) {
         cameraButton.isEnabled = false
         photoButton.isEnabled = false
 
-        sessionQueue.async {
+        sessionQueue.async { [unowned self] in
             let currentVideoDevice = self.videoDeviceInput.device
             let currentPosition = currentVideoDevice.position
 
-            let backVideoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(
-                deviceTypes: [.builtInDualCamera, .builtInDualWideCamera, .builtInWideAngleCamera],
-                mediaType: .video,
-                position: .back
+            self.updateVideoDeviceDiscoverySession(
+                position: currentPosition == .back ? .front : .back
             )
-            let frontVideoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(
-                deviceTypes: [.builtInTrueDepthCamera, .builtInWideAngleCamera],
-                mediaType: .video,
-                position: .front
-            )
-            var newVideoDevice: AVCaptureDevice? = nil
-
-            switch currentPosition {
-            case .unspecified, .front:
-                newVideoDevice = backVideoDeviceDiscoverySession.devices.first
-            case .back:
-                newVideoDevice = frontVideoDeviceDiscoverySession.devices.first
-            @unknown default:
-                print("Unknown capture position. Defaulting to back, dual-camera.")
-                newVideoDevice = AVCaptureDevice.default(.builtInDualCamera, for: .video, position: .back)
-            }
-
-            if let videoDevice = newVideoDevice {
-                do {
-                    let videoDeviceInput = try AVCaptureDeviceInput(device: videoDevice)
-
-                    self.session.beginConfiguration()
-
-                    // Remove the existing device input first, because AVCaptureSession doesn't support
-                    // simultaneous use of the rear and front cameras.
-                    self.session.removeInput(self.videoDeviceInput)
-
-                    if self.session.canAddInput(videoDeviceInput) {
-                        NotificationCenter.default.removeObserver(self, name: .AVCaptureDeviceSubjectAreaDidChange, object: currentVideoDevice)
-                        NotificationCenter.default.addObserver(self, selector: #selector(self.subjectAreaDidChange), name: .AVCaptureDeviceSubjectAreaDidChange, object: videoDeviceInput.device)
-
-                        self.session.addInput(videoDeviceInput)
-                        self.videoDeviceInput = videoDeviceInput
-                    } else {
-                        self.session.addInput(self.videoDeviceInput)
-                    }
-
-                    self.setDefaultZoom(videoDevice: videoDevice)
-
-                    /*
-                     Set Live Photo capture and depth data delivery if it's supported. When changing cameras, the
-                     `livePhotoCaptureEnabled` and `depthDataDeliveryEnabled` properties of the AVCapturePhotoOutput
-                     get set to false when a video device is disconnected from the session. After the new video device is
-                     added to the session, re-enable them on the AVCapturePhotoOutput, if supported.
-                     */
-                    self.photoOutput.isLivePhotoCaptureEnabled = self.photoOutput.isLivePhotoCaptureSupported
-                    self.photoOutput.isDepthDataDeliveryEnabled = self.photoOutput.isDepthDataDeliverySupported
-                    self.photoOutput.isPortraitEffectsMatteDeliveryEnabled = self.photoOutput.isPortraitEffectsMatteDeliverySupported
-                    self.photoOutput.enabledSemanticSegmentationMatteTypes = self.photoOutput.availableSemanticSegmentationMatteTypes
-                    self.selectedSemanticSegmentationMatteTypes = self.photoOutput.availableSemanticSegmentationMatteTypes
-                    self.photoOutput.maxPhotoQualityPrioritization = .quality
-
-                    self.session.commitConfiguration()
-                } catch {
-                    print("Error occurred while creating video device input: \(error)")
-                }
-            }
+            
+            switchToZoomLevel(zoomSwitcherModel.selectedZoomLevel, currentVideoDevice: currentVideoDevice)
 
             DispatchQueue.main.async {
                 self.cameraButton.isEnabled = true
