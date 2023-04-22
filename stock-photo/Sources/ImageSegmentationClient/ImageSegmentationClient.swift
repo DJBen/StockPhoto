@@ -64,8 +64,8 @@ extension ImageSegmentationClient: TestDependencyKey {
 }
 
 extension DependencyValues {
-  public var imageSegmentationClient: ImageSegmentationClient {
-    get { self[ImageSegmentationClient.self] }
-    set { self[ImageSegmentationClient.self] = newValue }
-  }
+    public var imageSegmentationClient: ImageSegmentationClient {
+        get { self[ImageSegmentationClient.self] }
+        set { self[ImageSegmentationClient.self] = newValue }
+    }
 }
