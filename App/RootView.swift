@@ -5,8 +5,7 @@
 //  Created by Ben Lu on 12/10/22.
 //
 
-import AppCore
-import AppUI
+import App
 import ComposableArchitecture
 import ImageSegmentationClientImpl
 import SwiftUI

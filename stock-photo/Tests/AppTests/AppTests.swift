@@ -1,7 +1,7 @@
 import XCTest
-@testable import AppCore
+@testable import App
 
-final class AppCoreTests: XCTestCase {
+final class AppTests: XCTestCase {
     func testExample() throws {
         XCTAssertTrue(true)
     }

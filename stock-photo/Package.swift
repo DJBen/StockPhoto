@@ -9,16 +9,20 @@ let package = Package(
         .iOS(.v16)
     ],
     products: [
-        .library(name: "AppCore", targets: ["AppCore"]),
-        .library(name: "AppUI", targets: ["AppUI"]),
-        .library(name: "ImageCaptureCore", targets: ["ImageCaptureCore"]),
-        .library(name: "ImageCaptureUI", targets: ["ImageCaptureUI"]),
+        .library(name: "App", targets: ["App"]),
+        .library(name: "ImageCapture", targets: ["ImageCapture"]),
         .library(name: "CoreMLHelpers", targets: ["CoreMLHelpers"]),
         .library(name: "ImageSegmentationClient", targets: ["ImageSegmentationClient"]),
         .library(name: "ImageSegmentationClientImpl", targets: ["ImageSegmentationClientImpl"]),
+        .library(name: "NetworkClient", targets: ["NetworkClient"]),
+        .library(name: "NetworkClientImpl", targets: ["NetworkClientImpl"]),
         .library(name: "DeviceExtension", targets: ["DeviceExtension"]),
     ],
     dependencies: [
+        .package(
+            url: "https://github.com/kishikawakatsumi/KeychainAccess.git",
+            from: Version(4, 2, 2)
+        ),
         .package(
             url: "https://github.com/pointfreeco/swift-composable-architecture.git",
             from: Version(0, 52, 0)
@@ -30,53 +34,57 @@ let package = Package(
         .package(
             url: "https://github.com/pointfreeco/swift-snapshot-testing.git",
             from: Version(1, 11, 0)
+        ),
+        .package(
+            url: "https://github.com/google/GoogleSignIn-iOS.git",
+            from: Version(7, 0, 0)
         )
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
         .target(
-            name: "AppCore",
+            name: "App",
             dependencies: [
+                "Login",
                 "ImageSegmentationClient",
-                "ImageCaptureCore",
+                "ImageCapture",
                 .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
             ]
         ),
         .testTarget(
-            name: "AppCoreTests",
+            name: "AppTests",
             dependencies: [
-                "AppCore"
-            ]
-        ),
-        .target(
-            name: "AppUI",
-            dependencies: [
-                "AppCore",
-                "ImageCaptureCore",
-                "ImageCaptureUI"
-            ]
-        ),
-        .target(
-            name: "ImageCaptureCore",
-            dependencies: [
-                "ImageSegmentationClient",
-                .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
-            ]
-        ),
-        .target(
-            name: "ImageCaptureUI",
-            dependencies: [
-                "DeviceExtension",
-                "ImageCaptureCore"
-            ],
-            resources: [
-                .process("Resources"),
+                "App"
             ]
         ),
         .target(
             name: "CoreMLHelpers",
             dependencies: [
+            ]
+        ),
+        .target(
+            name: "DeviceExtension",
+            dependencies: []
+        ),
+        .target(
+            name: "Login",
+            dependencies: [
+                .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+                "KeychainAccess",
+                .product(name: "GoogleSignInSwift", package: "GoogleSignIn-iOS"),
+                "NetworkClient",
+            ]
+        ),
+        .target(
+            name: "ImageCapture",
+            dependencies: [
+                "DeviceExtension",
+                "ImageSegmentationClient",
+                .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+            ],
+            resources: [
+                .process("Resources"),
             ]
         ),
         .target(
@@ -92,6 +100,18 @@ let package = Package(
                 "CoreMLHelpers",
             ]
         ),
+        .target(
+            name: "NetworkClient",
+            dependencies: [
+                .product(name: "Dependencies", package: "swift-dependencies"),
+            ]
+        ),
+        .target(
+            name: "NetworkClientImpl",
+            dependencies: [
+                "NetworkClient"
+            ]
+        ),
         .testTarget(
             name: "ImageSegmentationClientImplTests",
             dependencies: [
@@ -103,15 +123,11 @@ let package = Package(
                 .process("Resources"),
             ]
         ),
-        .target(
-            name: "DeviceExtension",
-            dependencies: []
-        ),
     ]
 )
 
 // Opt-out image capture UI from concurrency checks
-for target in package.targets where target.name != "ImageCaptureUI" {
+for target in package.targets where target.name != "ImageCapture" {
     target.swiftSettings = [
         .unsafeFlags([
             "-Xfrontend", "-enable-actor-data-race-checks",

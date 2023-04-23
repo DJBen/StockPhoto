@@ -7,13 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EF751D1429F4ACA400967E1D /* App in Frameworks */ = {isa = PBXBuildFile; productRef = EF751D1329F4ACA400967E1D /* App */; };
+		EF751D1629F5164E00967E1D /* NetworkClientImpl in Frameworks */ = {isa = PBXBuildFile; productRef = EF751D1529F5164E00967E1D /* NetworkClientImpl */; };
 		EF9D2015297E2BFE0064F061 /* ImageSegmentationClientImpl in Frameworks */ = {isa = PBXBuildFile; productRef = EF9D2014297E2BFE0064F061 /* ImageSegmentationClientImpl */; };
-		EFACEDAA294489AA00DDD16E /* AppCore in Frameworks */ = {isa = PBXBuildFile; productRef = EFACEDA9294489AA00DDD16E /* AppCore */; };
 		EFB17D642944831200AC956F /* StockPhotoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFB17D632944831200AC956F /* StockPhotoApp.swift */; };
 		EFB17D662944831200AC956F /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFB17D652944831200AC956F /* RootView.swift */; };
 		EFB17D682944831300AC956F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EFB17D672944831300AC956F /* Assets.xcassets */; };
 		EFB17D6B2944831300AC956F /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EFB17D6A2944831300AC956F /* Preview Assets.xcassets */; };
-		EFCC38BA2974DB4300F64004 /* AppUI in Frameworks */ = {isa = PBXBuildFile; productRef = EFCC38B92974DB4300F64004 /* AppUI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,9 +32,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EFCC38BA2974DB4300F64004 /* AppUI in Frameworks */,
+				EF751D1429F4ACA400967E1D /* App in Frameworks */,
+				EF751D1629F5164E00967E1D /* NetworkClientImpl in Frameworks */,
 				EF9D2015297E2BFE0064F061 /* ImageSegmentationClientImpl in Frameworks */,
-				EFACEDAA294489AA00DDD16E /* AppCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -104,9 +104,9 @@
 			);
 			name = StockPhoto;
 			packageProductDependencies = (
-				EFACEDA9294489AA00DDD16E /* AppCore */,
-				EFCC38B92974DB4300F64004 /* AppUI */,
 				EF9D2014297E2BFE0064F061 /* ImageSegmentationClientImpl */,
+				EF751D1329F4ACA400967E1D /* App */,
+				EF751D1529F5164E00967E1D /* NetworkClientImpl */,
 			);
 			productName = StockPhoto;
 			productReference = EFB17D602944831200AC956F /* StockPhoto.app */;
@@ -301,6 +301,7 @@
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "StockPhoto uses your location to tag where photos and videos are taken.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "StockPhoto uses the microphone to record sound during Live Photos and movies.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "StockPhoto saves captured photos and videos to your photo library.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -335,6 +336,7 @@
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "StockPhoto uses your location to tag where photos and videos are taken.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "StockPhoto uses the microphone to record sound during Live Photos and movies.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "StockPhoto saves captured photos and videos to your photo library.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -376,17 +378,17 @@
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		EF751D1329F4ACA400967E1D /* App */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = App;
+		};
+		EF751D1529F5164E00967E1D /* NetworkClientImpl */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = NetworkClientImpl;
+		};
 		EF9D2014297E2BFE0064F061 /* ImageSegmentationClientImpl */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = ImageSegmentationClientImpl;
-		};
-		EFACEDA9294489AA00DDD16E /* AppCore */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = AppCore;
-		};
-		EFCC38B92974DB4300F64004 /* AppUI */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = AppUI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
