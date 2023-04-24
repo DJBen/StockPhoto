@@ -45,6 +45,8 @@ class CameraViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        view.tintColor = .systemGreen
+
         // Bind models
         zoomSwitcherModel.$selectedZoomLevel.sink(
             receiveValue: selectedZoomLevelChanged
@@ -69,7 +71,7 @@ class CameraViewController: UIViewController {
         view.addSubview(photoButton)
 
         cameraButton = UIButton(type: .custom)
-        cameraButton.setImage(UIImage(named: "FlipCamera", in: .module, with: nil)!, for: .normal)
+        cameraButton.setImage(UIImage(systemName: "arrow.triangle.2.circlepath.camera.fill", withConfiguration: nil)!, for: .normal)
         cameraButton.addTarget(self, action: #selector(changeCamera), for: .touchUpInside)
         cameraButton.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(cameraButton)
@@ -203,8 +205,10 @@ class CameraViewController: UIViewController {
 
             case .notAuthorized:
                 DispatchQueue.main.async {
-                    let changePrivacySetting = "AVCam doesn't have permission to use the camera, please change privacy settings"
-                    let message = NSLocalizedString(changePrivacySetting, comment: "Alert message when the user has denied access to the camera")
+                    let message = NSLocalizedString(
+                        "AVCam doesn't have permission to use the camera, please change privacy settings",
+                        comment: "Alert message when the user has denied access to the camera"
+                    )
                     let alertController = UIAlertController(title: "AVCam", message: message, preferredStyle: .alert)
 
                     alertController.addAction(
@@ -398,13 +402,11 @@ class CameraViewController: UIViewController {
         if session.canAddOutput(photoOutput) {
             session.addOutput(photoOutput)
 
-            photoOutput.isHighResolutionCaptureEnabled = true
-            photoOutput.isLivePhotoCaptureEnabled = photoOutput.isLivePhotoCaptureSupported
             photoOutput.isDepthDataDeliveryEnabled = photoOutput.isDepthDataDeliverySupported
             photoOutput.isPortraitEffectsMatteDeliveryEnabled = photoOutput.isPortraitEffectsMatteDeliverySupported
             photoOutput.enabledSemanticSegmentationMatteTypes = photoOutput.availableSemanticSegmentationMatteTypes
             selectedSemanticSegmentationMatteTypes = photoOutput.availableSemanticSegmentationMatteTypes
-            photoOutput.maxPhotoQualityPrioritization = .quality
+            photoOutput.maxPhotoQualityPrioritization = .balanced
 
         } else {
             print("Could not add photo output to the session")
@@ -416,7 +418,14 @@ class CameraViewController: UIViewController {
         session.commitConfiguration()
     }
 
-    @objc private func resumeInterruptedSession(_ resumeButton: UIButton) {
+    func pauseSession() {
+        sessionQueue.async {
+            self.session.stopRunning()
+            self.isSessionRunning = self.session.isRunning
+        }
+    }
+
+    func resumeSession() {
         sessionQueue.async {
             /*
              The session might fail to start running, for example, if a phone or FaceTime call is still
@@ -441,6 +450,10 @@ class CameraViewController: UIViewController {
                 }
             }
         }
+    }
+
+    @objc private func resumeInterruptedSession(_ resumeButton: UIButton) {
+        resumeSession()
     }
 
     // MARK: Device Configuration
@@ -662,17 +675,9 @@ class CameraViewController: UIViewController {
                 photoSettings.flashMode = .auto
             }
 
-            photoSettings.isHighResolutionPhotoEnabled = true
             if let previewPhotoPixelFormatType = photoSettings.availablePreviewPhotoPixelFormatTypes.first {
                 photoSettings.previewPhotoFormat = [kCVPixelBufferPixelFormatTypeKey as String: previewPhotoPixelFormatType]
             }
-            // Live Photo capture is not supported in movie mode.
-            if  self.photoOutput.isLivePhotoCaptureSupported {
-                let livePhotoMovieFileName = NSUUID().uuidString
-                let livePhotoMovieFilePath = (NSTemporaryDirectory() as NSString).appendingPathComponent((livePhotoMovieFileName as NSString).appendingPathExtension("mov")!)
-                photoSettings.livePhotoMovieFileURL = URL(fileURLWithPath: livePhotoMovieFilePath)
-            }
-
             photoSettings.isDepthDataDeliveryEnabled = self.photoOutput.isDepthDataDeliveryEnabled
             photoSettings.isPortraitEffectsMatteDeliveryEnabled = self.photoOutput.isPortraitEffectsMatteDeliveryEnabled
 
@@ -693,20 +698,14 @@ class CameraViewController: UIViewController {
                             self.previewView.videoPreviewLayer.opacity = 1
                         }
                     }
-                }, livePhotoCaptureHandler: { capturing in
-                    self.sessionQueue.async {
-                        if capturing {
-                            self.inProgressLivePhotoCapturesCount += 1
-                        } else {
-                            self.inProgressLivePhotoCapturesCount -= 1
-                        }
-                    }
-                }, completionHandler: { photoCaptureProcessor in
+                },
+                completionHandler: { photoCaptureProcessor in
                     // When the capture is complete, remove a reference to the photo capture delegate so it can be deallocated.
                     self.sessionQueue.async {
                         self.inProgressPhotoCaptureDelegates[photoCaptureProcessor.requestedPhotoSettings.uniqueID] = nil
                     }
-                }, photoProcessingHandler: { animate in
+                },
+                photoProcessingHandler: { animate in
                     // Animates a spinner while photo is processing
                     DispatchQueue.main.async {
                         if animate {
@@ -738,7 +737,7 @@ class CameraViewController: UIViewController {
     private var keyValueObservations = [NSKeyValueObservation]()
     /// - Tag: ObserveInterruption
     private func addObservers() {
-        let keyValueObservation = session.observe(\.isRunning, options: .new) { _, change in
+        let keyValueObservation = session.observe(\.isRunning, options: [.initial, .new]) { _, change in
             guard let isSessionRunning = change.newValue else { return }
 
             DispatchQueue.main.async {

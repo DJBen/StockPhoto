@@ -4,29 +4,20 @@ import ComposableArchitecture
 import Dispatch
 import ImageSegmentationClient
 
-public struct CapturedImage: Equatable, Identifiable {
-    public var id: UUID
-    public var image: UIImage
-    public var depthData: AVDepthData?
-
-    public init(id: UUID, image: UIImage, depthData: AVDepthData? = nil) {
-        self.id = id
-        self.image = image
-        self.depthData = depthData
-    }
-}
-
 public struct ImageCapture: ReducerProtocol, Sendable {
     public struct State: Equatable {
+        public var accessToken: String?
         public var capturedImage: CapturedImage?
         public var finalImage: UIImage?
         public var segmentationMask: CVPixelBuffer?
 
         public init(
+            accessToken: String? = nil,
             capturedImage: CapturedImage? = nil,
             finalImage: UIImage? = nil,
             segmentationMask: CVPixelBuffer? = nil
         ) {
+            self.accessToken = accessToken
             self.capturedImage = capturedImage
             self.finalImage = finalImage
             self.segmentationMask = segmentationMask

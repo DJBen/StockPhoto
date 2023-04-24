@@ -12,11 +12,12 @@ let package = Package(
         .library(name: "App", targets: ["App"]),
         .library(name: "ImageCapture", targets: ["ImageCapture"]),
         .library(name: "CoreMLHelpers", targets: ["CoreMLHelpers"]),
+        .library(name: "DeviceExtension", targets: ["DeviceExtension"]),
         .library(name: "ImageSegmentationClient", targets: ["ImageSegmentationClient"]),
         .library(name: "ImageSegmentationClientImpl", targets: ["ImageSegmentationClientImpl"]),
         .library(name: "NetworkClient", targets: ["NetworkClient"]),
         .library(name: "NetworkClientImpl", targets: ["NetworkClientImpl"]),
-        .library(name: "DeviceExtension", targets: ["DeviceExtension"]),
+        .library(name: "StockPhotoUI", targets: ["StockPhotoUI"])
     ],
     dependencies: [
         .package(
@@ -123,11 +124,23 @@ let package = Package(
                 .process("Resources"),
             ]
         ),
+        .target(
+            name: "StockPhotoUI",
+            dependencies: [
+                .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+                .product(name: "Dependencies", package: "swift-dependencies")
+            ]
+        )
     ]
 )
 
+let packagesIgnoringConcurrencyChecks = [
+    "ImageCapture",
+    "StockPhotoUI"
+]
+
 // Opt-out image capture UI from concurrency checks
-for target in package.targets where target.name != "ImageCapture" {
+for target in package.targets where !packagesIgnoringConcurrencyChecks.contains(target.name) {
     target.swiftSettings = [
         .unsafeFlags([
             "-Xfrontend", "-enable-actor-data-race-checks",

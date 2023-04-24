@@ -5,28 +5,26 @@ import ImageCapture
 import SwiftUI
 
 public struct StockPhoto: ReducerProtocol {
-    public struct State: Equatable {
-        /// The navigation destination identifier
-        public enum Destination: Equatable {
-            case login
-            case imageCapture
-        }
+    /// The navigation destination identifier
+    public enum Destination: Equatable {
+        case todo
+    }
 
+    public struct State: Equatable {
         public var destinations: [Destination]
         public var login: Login.State
-        public var imageCapture: ImageCapture.State?
+        public var imageCapture: ImageCapture.State
 
         public init() {
             self.destinations = []
             self.login = Login.State()
-            self.imageCapture = nil
+            self.imageCapture = ImageCapture.State()
         }
     }
 
     public enum Action: Equatable {
-        // Navigation
-        case navigationChanged([State.Destination])
-        case navigateToImageCapture
+        // Stack-based navigation
+        case navigationChanged([Destination])
 
         case login(Login.Action)
         case imageCapture(ImageCapture.Action)
@@ -40,23 +38,27 @@ public struct StockPhoto: ReducerProtocol {
                 Login()
             }
 
+            Scope(state: \.imageCapture, action: /Action.imageCapture) {
+                ImageCapture()
+            }
+
             Reduce { state, action in
                 switch action {
                 case .navigationChanged(let destinations):
                     state.destinations = destinations
                     return .none
-                case .navigateToImageCapture:
-                    state.destinations.append(.imageCapture)
-                    return .none
-                case .login(_):
+                case .login(let loginAction):
+                    switch loginAction {
+                    case .didAuthenticate(accessToken: let accessToken, userID: _):
+                        state.imageCapture.accessToken = accessToken
+                    default:
+                        break
+                    }
                     return .none
                 case .imageCapture(_):
                     return .none
                 }
             }
-        }
-        .ifLet(\.imageCapture, action: /Action.imageCapture) {
-            ImageCapture()
         }
     }
 }

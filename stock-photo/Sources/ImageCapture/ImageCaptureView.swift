@@ -10,8 +10,9 @@ public struct ImageCaptureView: View {
     }
 
     public var body: some View {
-        WithViewStore(store, observe: { $0 }) { viewStore in
+        WithViewStore(store) { viewStore in
             CameraView(
+                shouldRunCameraSession: viewStore.capturedImage == nil,
                 didFinishProcessingPhoto: { image, depthData in
                     viewStore.send(
                         .didFinishProcessingPhoto(image: image, depthData: depthData)

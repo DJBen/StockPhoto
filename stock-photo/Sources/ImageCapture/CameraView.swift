@@ -4,6 +4,7 @@ import SwiftUI
 struct CameraView: UIViewControllerRepresentable {
     typealias UIViewControllerType = CameraViewController
 
+    let shouldRunCameraSession: Bool
     let didFinishProcessingPhoto: (UIImage, AVDepthData?) -> Void
 
     class Coordinator: NSObject, CameraViewControllerDelegate {
@@ -30,6 +31,10 @@ struct CameraView: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ uiViewController: CameraViewController, context: Context) {
-        
+        if shouldRunCameraSession {
+            uiViewController.resumeSession()
+        } else {
+            uiViewController.pauseSession()
+        }
     }
 }

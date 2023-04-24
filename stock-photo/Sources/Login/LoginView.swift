@@ -15,7 +15,9 @@ public struct LoginView: View {
             VStack(spacing: 16) {
                 Spacer()
 
-                GoogleSignInButton {
+                GoogleSignInButton(
+                    disabled: viewStore.isAuthenticating
+                ) {
                     if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene, let window = windowScene.windows.first, let rootViewController = window.rootViewController {
                         GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController) { signinResult, error in
                             if let signinResult = signinResult, let authCode = signinResult.serverAuthCode {
@@ -46,6 +48,7 @@ public struct LoginView: View {
                         viewStore.send(.didFailLogin(error))
                     }
                 }
+                .disabled(viewStore.isAuthenticating)
                 .frame(height: 60)
                 .padding(.horizontal, 24)
             }

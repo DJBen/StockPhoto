@@ -18,12 +18,25 @@ public struct AppView: View {
                     send: StockPhoto.Action.navigationChanged
                 )
             ) {
-                LoginView(
+                ImageCaptureView(
                     store: store.scope(
-                        state: \.login,
-                        action: StockPhoto.Action.login
+                        state: \.imageCapture,
+                        action: StockPhoto.Action.imageCapture
                     )
                 )
+                .fullScreenCover(
+                    isPresented: viewStore.binding(
+                        get: { $0.login.isShowingLoginSheet },
+                        send: { StockPhoto.Action.login(.setLoginSheetPresented($0)) }
+                    )
+                ) {
+                    LoginView(
+                        store: store.scope(
+                            state: \.login,
+                            action: StockPhoto.Action.login
+                        )
+                    )
+                }
             }
         }
 

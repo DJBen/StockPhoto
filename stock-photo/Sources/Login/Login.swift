@@ -13,17 +13,16 @@ public struct Login: ReducerProtocol, Sendable {
     }
 
     public struct State: Equatable {
-        var accessToken: String?
-        var userID: String?
-        var alert: AlertState<Action>?
+        public var isShowingLoginSheet: Bool = true
+        public var accessToken: String?
+        public var userID: String?
+        /// Whether it is calling our backend service to authenticate.
+        ///
+        /// Signin buttons should be disabled, until either successful or failed result returns.
+        public var isAuthenticating: Bool = false
+        public var alert: AlertState<Action>?
 
-        public init() {
-        }
-
-        public static func == (lhs: Login.State, rhs: Login.State) -> Bool {
-            return lhs.userID == rhs.userID &&
-            (lhs.alert != nil) == (rhs.alert != nil)
-        }
+        public init() {}
     }
 
     public enum Action: Equatable {
@@ -36,6 +35,7 @@ public struct Login: ReducerProtocol, Sendable {
         /// The credential is not found in the keychain. Present login screen normally.
         case didNotFindAccessToken
 
+        case setLoginSheetPresented(Bool)
         case dismissErrorAlert
 
         public static func == (lhs: Action, rhs: Action) -> Bool {
@@ -63,6 +63,32 @@ public struct Login: ReducerProtocol, Sendable {
 
     private let accessTokenKey = "session-key"
 
+    /**
+     Extracts the `sub` (subject) claim from a JSON Web Token (JWT) string.
+
+     This method takes a JWT token string as input and extracts the `sub` claim from its payload. The `sub` claim usually represents the user identifier in a JWT token.
+
+     - Parameter jwtToken: The JWT token string to extract the `sub` claim from.
+     - Returns: The `sub` claim value as a `String`.
+     - Throws: An `NSError` with a localized description if the JWT token is invalid, the base64 encoding is invalid, or the `sub` claim is not found in the token.
+
+     - Precondition:
+        - `jwtToken` must be a valid JWT token string with three components separated by dots (.).
+
+     - Postcondition:
+        - The returned `String` contains the extracted `sub` claim value.
+
+     Example usage:
+      ```swift
+        do {
+            let jwtToken = "your.jwt.token.string"
+            let sub = try extractSubFromJWT(jwtToken)
+            print("User ID: \(sub)")
+        } catch {
+            print("Error: \(error.localizedDescription)")
+        }
+     ```
+     */
     private func extractSubFromJWT(_ jwtToken: String) throws -> String {
         func constructError(_ localizedDescription: String) -> Error {
             NSError(
@@ -175,9 +201,13 @@ public struct Login: ReducerProtocol, Sendable {
             case .didAuthenticate(let accessToken, let userID):
                 state.accessToken = accessToken
                 state.userID = userID
+                state.isShowingLoginSheet = false
                 return .none
             case .didNotFindAccessToken:
                 // No credentials find, present the login view normally
+                return .none
+            case .setLoginSheetPresented(let isPresented):
+                state.isShowingLoginSheet = isPresented
                 return .none
             case .dismissErrorAlert:
                 state.alert = nil

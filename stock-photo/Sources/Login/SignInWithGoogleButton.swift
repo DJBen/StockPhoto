@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct GoogleSignInButton: View {
-    let disabled: Bool = false
-    let signIn: () -> Void
+    var disabled: Bool = false
+    var signIn: () -> Void
 
     var body: some View {
         Button(action: signIn) {
