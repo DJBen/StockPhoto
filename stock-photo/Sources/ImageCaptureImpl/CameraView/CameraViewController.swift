@@ -588,13 +588,18 @@ class CameraViewController: UIViewController {
         focus(with: .autoFocus, exposureMode: .autoExpose, at: devicePoint, monitorSubjectAreaChange: true)
     }
 
-    private func focus(with focusMode: AVCaptureDevice.FocusMode,
-                       exposureMode: AVCaptureDevice.ExposureMode,
-                       at devicePoint: CGPoint,
-                       monitorSubjectAreaChange: Bool) {
+    private func focus(
+        with focusMode: AVCaptureDevice.FocusMode,
+        exposureMode: AVCaptureDevice.ExposureMode,
+        at devicePoint: CGPoint,
+        monitorSubjectAreaChange: Bool
+    ) {
 
         sessionQueue.async {
-            let device = self.videoDeviceInput.device
+            guard let device = self.videoDeviceInput?.device else {
+                return
+            }
+
             do {
                 try device.lockForConfiguration()
 

@@ -5,7 +5,7 @@
 //  Created by Ben Lu on 1/17/23.
 //
 
-import ImageCaptureCore
+import ImageCapture
 import SwiftUI
 
 struct ImageSegmentationDisplayView: View {

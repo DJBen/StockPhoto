@@ -10,19 +10,35 @@ let package = Package(
     ],
     products: [
         .library(name: "App", targets: ["App"]),
-        .library(name: "ImageCapture", targets: ["ImageCapture"]),
         .library(name: "CoreMLHelpers", targets: ["CoreMLHelpers"]),
         .library(name: "DeviceExtension", targets: ["DeviceExtension"]),
+        .library(name: "Home", targets: ["Home"]),
+        .library(name: "HomeImpl", targets: ["HomeImpl"]),
+        .library(name: "ImageCapture", targets: ["ImageCapture"]),
+        .library(name: "ImageCaptureImpl", targets: ["ImageCaptureImpl"]),
         .library(name: "ImageSegmentationClient", targets: ["ImageSegmentationClient"]),
         .library(name: "ImageSegmentationClientImpl", targets: ["ImageSegmentationClientImpl"]),
+        .library(name: "ImageViewer", targets: ["ImageViewer"]),
         .library(name: "NetworkClient", targets: ["NetworkClient"]),
         .library(name: "NetworkClientImpl", targets: ["NetworkClientImpl"]),
-        .library(name: "StockPhotoUI", targets: ["StockPhotoUI"])
+        .library(name: "Navigation", targets: ["Navigation"]),
+        .library(name: "Segmentation", targets: ["Segmentation"]),
+        .library(name: "SegmentationImpl", targets: ["SegmentationImpl"]),
+        .library(name: "StockPhotoFoundation", targets: ["StockPhotoFoundation"]),
+        .library(name: "StockPhotoUI", targets: ["StockPhotoUI"]),
     ],
     dependencies: [
         .package(
+            url: "https://github.com/google/GoogleSignIn-iOS.git",
+            from: Version(7, 0, 0)
+        ),
+        .package(
             url: "https://github.com/kishikawakatsumi/KeychainAccess.git",
             from: Version(4, 2, 2)
+        ),
+        .package(
+            url: "https://github.com/kean/Nuke.git",
+            from: Version(12, 1, 0)
         ),
         .package(
             url: "https://github.com/pointfreeco/swift-composable-architecture.git",
@@ -36,10 +52,6 @@ let package = Package(
             url: "https://github.com/pointfreeco/swift-snapshot-testing.git",
             from: Version(1, 11, 0)
         ),
-        .package(
-            url: "https://github.com/google/GoogleSignIn-iOS.git",
-            from: Version(7, 0, 0)
-        )
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -47,16 +59,22 @@ let package = Package(
         .target(
             name: "App",
             dependencies: [
+                .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
                 "Login",
+                "Home",
+                "HomeImpl",
                 "ImageSegmentationClient",
                 "ImageCapture",
-                .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+                "ImageCaptureImpl",
+                "Navigation",
+                "Segmentation",
+                "SegmentationImpl",
             ]
         ),
         .testTarget(
             name: "AppTests",
             dependencies: [
-                "App"
+                "App",
             ]
         ),
         .target(
@@ -69,20 +87,36 @@ let package = Package(
             dependencies: []
         ),
         .target(
-            name: "Login",
+            name: "Home",
             dependencies: [
                 .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
-                "KeychainAccess",
-                .product(name: "GoogleSignInSwift", package: "GoogleSignIn-iOS"),
-                "NetworkClient",
+                "StockPhotoFoundation",
+            ]
+        ),
+        .target(
+            name: "HomeImpl",
+            dependencies: [
+                .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+                "Home",
+                "Navigation",
+                "Segmentation",
             ]
         ),
         .target(
             name: "ImageCapture",
             dependencies: [
+                .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+            ]
+        ),
+        .target(
+            name: "ImageCaptureImpl",
+            dependencies: [
+                .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
                 "DeviceExtension",
+                "ImageCapture",
                 "ImageSegmentationClient",
-                .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
+                "ImageViewer",
+                "Navigation",
             ],
             resources: [
                 .process("Resources"),
@@ -102,15 +136,33 @@ let package = Package(
             ]
         ),
         .target(
+            name: "ImageViewer",
+            dependencies: [
+            ]
+        ),
+        .target(
+            name: "Login",
+            dependencies: [
+                .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+                "KeychainAccess",
+                .product(name: "GoogleSignInSwift", package: "GoogleSignIn-iOS"),
+                "NetworkClient",
+            ]
+        ),
+        .target(
             name: "NetworkClient",
             dependencies: [
-                .product(name: "Dependencies", package: "swift-dependencies"),
+                "Home",
+                "Segmentation",
             ]
         ),
         .target(
             name: "NetworkClientImpl",
             dependencies: [
-                "NetworkClient"
+                "Home",
+                "NetworkClient",
+                .product(name: "Nuke", package: "Nuke"),
+                "StockPhotoFoundation",
             ]
         ),
         .testTarget(
@@ -125,6 +177,32 @@ let package = Package(
             ]
         ),
         .target(
+            name: "Navigation",
+            dependencies: [
+                "ImageCapture",
+                "Home",
+            ]
+        ),
+        .target(
+            name: "Segmentation",
+            dependencies: [
+                "StockPhotoFoundation",
+            ]
+        ),
+        .target(
+            name: "SegmentationImpl",
+            dependencies: [
+                "ImageViewer",
+                "NetworkClient",
+                "StockPhotoFoundation",
+            ]
+        ),
+        .target(
+            name: "StockPhotoFoundation",
+            dependencies: [
+            ]
+        ),
+        .target(
             name: "StockPhotoUI",
             dependencies: [
                 .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
@@ -135,7 +213,7 @@ let package = Package(
 )
 
 let packagesIgnoringConcurrencyChecks = [
-    "ImageCapture",
+    "ImageCaptureImpl",
     "StockPhotoUI"
 ]
 

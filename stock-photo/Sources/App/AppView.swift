@@ -1,6 +1,11 @@
 import ComposableArchitecture
 import Login
+import Home
+import HomeImpl
 import ImageCapture
+import ImageCaptureImpl
+import Segmentation
+import SegmentationImpl
 import SwiftUI
 
 public struct AppView: View {
@@ -18,11 +23,21 @@ public struct AppView: View {
                     send: StockPhoto.Action.navigationChanged
                 )
             ) {
-                ImageCaptureView(
+//                ImageCaptureView(
+//                    store: store.scope(
+//                        state: \.imageCapture,
+//                        action: StockPhoto.Action.imageCapture
+//                    )
+//                )
+                HomeView<
+                    Segmentation,
+                    SegmentationView
+                >(
                     store: store.scope(
-                        state: \.imageCapture,
-                        action: StockPhoto.Action.imageCapture
-                    )
+                        state: HomeState.project,
+                        action: StockPhoto.Action.home
+                    ),
+                    segmentViewBuilder: SegmentationView.init
                 )
                 .fullScreenCover(
                     isPresented: viewStore.binding(
@@ -39,11 +54,5 @@ public struct AppView: View {
                 }
             }
         }
-
-//        SwitchStore(self.store) {
-//            CaseLet(state: /StockPhoto.State.imageCapture, action: StockPhoto.Action.imageCapture) { store in
-//                ImageCaptureView(store: store)
-//            }
-//        }
     }
 }

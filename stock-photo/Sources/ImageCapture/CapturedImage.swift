@@ -2,7 +2,7 @@ import AVFoundation
 import Foundation
 import UIKit
 
-public struct CapturedImage: Equatable, Identifiable {
+public struct CapturedImage: Equatable, Hashable, Identifiable {
     public var id: UUID
     public var image: UIImage
     public var depthData: AVDepthData?

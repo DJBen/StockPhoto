@@ -1,38 +1,10 @@
-import Dependencies
+import UIKit
 
-public struct NetworkClient: Sendable {
-    public var authenticateGoogle: @Sendable (AuthenticateGoogleRequest) async throws -> AuthenticateGoogleResponse
-    public var authenticateApple: @Sendable (AuthenticateAppleRequest) async throws -> AuthenticateAppleResponse
-    public var uploadImage: @Sendable (UploadImageRequest) async -> AsyncThrowingStream<UploadFileUpdate, Error>
-
-    public init(
-        authenticateGoogle: @escaping @Sendable (AuthenticateGoogleRequest) async throws -> AuthenticateGoogleResponse,
-        authenticateApple: @escaping @Sendable (AuthenticateAppleRequest) async throws -> AuthenticateAppleResponse,
-        uploadImage: @escaping @Sendable (UploadImageRequest) async -> AsyncThrowingStream<UploadFileUpdate, Error>
-    ) {
-        self.authenticateGoogle = authenticateGoogle
-        self.authenticateApple = authenticateApple
-        self.uploadImage = uploadImage
-    }
-}
-
-extension NetworkClient: TestDependencyKey {
-    public static var testValue = NetworkClient(
-        authenticateGoogle: { _ in
-            AuthenticateGoogleResponse(accessToken: "", tokenType: "bearer")
-        },
-        authenticateApple: { _ in
-            AuthenticateAppleResponse(accessToken: "", tokenType: "bearer")
-        },
-        uploadImage: { _ in
-            fatalError()
-        }
-    )
-}
-
-extension DependencyValues {
-    public var networkClient: NetworkClient {
-        get { self[NetworkClient.self] }
-        set { self[NetworkClient.self] = newValue }
-    }
+public protocol NetworkClient: Sendable {
+    func authenticateGoogle(_ request: AuthenticateGoogleRequest) async throws -> AuthenticateGoogleResponse
+    func authenticateApple(_ request: AuthenticateAppleRequest) async throws -> AuthenticateAppleResponse
+    func uploadImage(_ request: UploadImageRequest) async -> AsyncThrowingStream<UploadFileUpdate, Error>
+    func listImageProjects(_ request: ListImageProjectsRequest) async throws -> ListImageProjectsResponse
+    func fetchImage(_ request: FetchImageRequest) async throws -> UIImage
+    func segment(_ request: SegmentRequest) async throws -> SegmentResponse
 }

@@ -17,5 +17,22 @@
 	<string>862070071186-odelccv48up0namepffub7eqt6aa12lt.apps.googleusercontent.com</string>
 	<key>GIDServerClientID</key>
 	<string>862070071186-ksdujkgkd5hdj881dmreo67stsibsnvf.apps.googleusercontent.com</string>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<true/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneConfigurationName</key>
+					<string>Default Configuration</string>
+					<key>UISceneDelegateClassName</key>
+					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
 </dict>
 </plist>
