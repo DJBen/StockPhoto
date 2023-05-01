@@ -5,6 +5,7 @@ import Dispatch
 import KeychainAccess
 import ImageCapture
 import NetworkClient
+import StockPhotoFoundation
 
 public struct Login: ReducerProtocol, Sendable {
     enum AuthorizationResult {
@@ -29,7 +30,7 @@ public struct Login: ReducerProtocol, Sendable {
         case checkExistingAccessToken
         case didObtainCredentialFromGoogle(GoogleCredentials)
         case didObtainCredentialFromApple(ASAuthorizationAppleIDCredential)
-        case didFailLogin(Error)
+        case didFailLogin(SPError)
         case didAuthenticate(accessToken: String, userID: String)
 
         /// The credential is not found in the keychain. Present login screen normally.
@@ -37,23 +38,6 @@ public struct Login: ReducerProtocol, Sendable {
 
         case setLoginSheetPresented(Bool)
         case dismissErrorAlert
-
-        public static func == (lhs: Action, rhs: Action) -> Bool {
-            switch (lhs, rhs) {
-            case (.checkExistingAccessToken, .checkExistingAccessToken),
-                 (.didObtainCredentialFromApple, .didObtainCredentialFromApple),
-                 (.didFailLogin, .didFailLogin),
-                 (.didNotFindAccessToken, .didNotFindAccessToken),
-                 (.dismissErrorAlert, .dismissErrorAlert):
-                return true
-            case (.didAuthenticate(let lhsAccessToken, let lhsUserID), .didAuthenticate(let rhsAccessToken, let rhsUserID)):
-                return lhsAccessToken == rhsAccessToken && lhsUserID == rhsUserID
-            case (.didObtainCredentialFromGoogle(let lhsCredentials), .didObtainCredentialFromGoogle(let rhsCredentials)):
-                return lhsCredentials == rhsCredentials
-            default:
-                return false
-            }
-        }
     }
 
     @Dependency(\.keychain) var keychain
@@ -107,7 +91,7 @@ public struct Login: ReducerProtocol, Sendable {
                         return .didAuthenticate(accessToken: response.accessToken, userID: userID)
                     },
                     catch: { error in
-                        return .didFailLogin(error)
+                        return .didFailLogin(SPError.catch(error))
                     }
                 )
             case .didObtainCredentialFromApple(let credential):
@@ -115,12 +99,14 @@ public struct Login: ReducerProtocol, Sendable {
                     operation: {
                         guard let code = credential.authorizationCode else {
                             return .didFailLogin(
-                                NSError(
-                                    domain: "ASAuthorizationAppleIDCredential",
-                                    code: 501,
-                                    userInfo: [
-                                        NSLocalizedDescriptionKey: "Apple credential does not contain authorization code"
-                                    ]
+                                .unknownError(
+                                    NSError(
+                                        domain: "ASAuthorizationAppleIDCredential",
+                                        code: 501,
+                                        userInfo: [
+                                            NSLocalizedDescriptionKey: "Apple credential does not contain authorization code"
+                                        ]
+                                    )
                                 )
                             )
                         }
@@ -136,7 +122,7 @@ public struct Login: ReducerProtocol, Sendable {
                         return .didAuthenticate(accessToken: response.accessToken, userID: userID)
                     },
                     catch: { error in
-                        return .didFailLogin(error)
+                        return .didFailLogin(SPError.catch(error))
                     }
                 )
             case .didAuthenticate(let accessToken, let userID):

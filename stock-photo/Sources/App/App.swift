@@ -25,6 +25,7 @@ public struct StockPhoto: ReducerProtocol, Sendable {
         public var images: [String: Loadable<UIImage, SPError>]
         public var selectedImageProjectID: String?
         public var segmentationResult: [SegmentationIdentifier: Loadable<[Mask], SPError>]
+        public var afterSegmentationSnapshot: UIImage?
         
         public var home: HomeState {
             get {
@@ -78,7 +79,7 @@ public struct StockPhoto: ReducerProtocol, Sendable {
             Scope(state: \.home, action: /Action.home) {
                 Home(
                     networkClient: networkClient,
-                    segmentationFactory: {
+                    segmentationReducerFactory: {
                         Segmentation(networkClient: networkClient)
                     }
                 )

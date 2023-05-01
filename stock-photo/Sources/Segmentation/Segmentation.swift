@@ -3,23 +3,29 @@ import StockPhotoFoundation
 import UIKit
 
 public struct SegmentationState: Equatable {
-    public let fileID: String
-    public let image: UIImage
-    public let segmentationResult: [SegmentationIdentifier: Loadable<[Mask], SPError>]
+    public var accessToken: String
+    public var fileName: String
+    public var image: UIImage
+    public var segmentationResult: [SegmentationIdentifier: Loadable<[Mask], SPError>]
+    public var afterSegmentationSnapshot: UIImage?
 
     public init(
-        fileID: String,
+        accessToken: String,
+        fileName: String,
         image: UIImage,
-        segmentationResult: [SegmentationIdentifier: Loadable<[Mask], SPError>]
+        segmentationResult: [SegmentationIdentifier: Loadable<[Mask], SPError>],
+        afterSegmentationSnapshot: UIImage?
     ) {
-        self.fileID = fileID
+        self.accessToken = accessToken
+        self.fileName = fileName
         self.image = image
         self.segmentationResult = segmentationResult
+        self.afterSegmentationSnapshot = afterSegmentationSnapshot
     }
 }
 
 public enum SegmentationAction: Equatable {
     case dismissSegmentation
-    case requestSegmentation(SegmentationIdentifier)
+    case requestSegmentation(SegmentationIdentifier, accessToken: String, snapshot: UIImage?)
     case didCompleteSegmentation(Loadable<[Mask], SPError>, segID: SegmentationIdentifier)
 }

@@ -2,6 +2,7 @@ import PhotosUI
 import Segmentation
 import StockPhotoFoundation
 import SwiftUI
+import UIKit
 
 public struct HomeState: Equatable {
     public var accessToken: String?
@@ -11,6 +12,7 @@ public struct HomeState: Equatable {
     public var images: [String: Loadable<UIImage, SPError>]
     public var selectedImageProjectID: String?
     public var segmentationResult: [SegmentationIdentifier: Loadable<[Mask], SPError>]
+    public var afterSegmentationSnapshot: UIImage?
 
     public init(
         accessToken: String?,
@@ -19,7 +21,8 @@ public struct HomeState: Equatable {
         imageProjects: Loadable<[ImageProject], SPError>,
         images: [String: Loadable<UIImage, SPError>],
         selectedImageProjectID: String?,
-        segmentationResult: [SegmentationIdentifier: Loadable<[Mask], SPError>]
+        segmentationResult: [SegmentationIdentifier: Loadable<[Mask], SPError>],
+        afterSegmentationSnapshot: UIImage?
     ) {
         self.accessToken = accessToken
         self.selectedPhotosPickerItem = selectedPhotosPickerItem
@@ -28,6 +31,7 @@ public struct HomeState: Equatable {
         self.images = images
         self.selectedImageProjectID = selectedImageProjectID
         self.segmentationResult = segmentationResult
+        self.afterSegmentationSnapshot = afterSegmentationSnapshot
     }
 }
 

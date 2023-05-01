@@ -21,7 +21,7 @@ public struct HomeView<
         var selectedImageProjectID: String?
 
         struct ImageItem: Equatable {
-            let id: String
+            let fileName: String
             let imageLoadable: Loadable<UIImage, SPError>
         }
 
@@ -35,7 +35,7 @@ public struct HomeView<
                 imageProjects: homeState.imageProjects,
                 selectedImageProjectID: homeState.selectedImageProjectID,
                 images: homeState.images.map { (key, value) in
-                    ImageItem(id: key, imageLoadable: value)
+                    ImageItem(fileName: key, imageLoadable: value)
                 }
             )
         }
@@ -62,9 +62,9 @@ public struct HomeView<
                         send: HomeAction.selectImageProjectID
                     )
                 ) {
-                    ForEach(viewStore.images, id: \.id) { item in
+                    ForEach(viewStore.images, id: \.fileName) { item in
                         NavigationLink(
-                            value: StockPhotoDestination.selectedImageProject(item.id)
+                            value: StockPhotoDestination.selectedImageProject(item.fileName)
                         ) {
                             Group {
                                 if let image = item.imageLoadable.value {
@@ -116,6 +116,7 @@ public struct HomeView<
                     }
                 }
             }
+            .navigationTitle("Projects")
             .onChange(of: viewStore.accessToken) { newAccessToken in
                 guard let newAccessToken = newAccessToken else {
                     return
@@ -129,12 +130,13 @@ public struct HomeView<
                 switch destination {
                 case .postImageCapture(_):
                     EmptyView()
-                case .selectedImageProject(let id):
+                case .selectedImageProject(let fileName):
                     IfLetStore(
                         store.scope(
                             state: SegmentationState.projectToHomeState(
-                                id: id,
-                                imageLoadable: viewStore.images.first { $0.id == id }?.imageLoadable
+                                fileName: fileName,
+                                imageLoadable: viewStore.images.first { $0.fileName == fileName }?.imageLoadable,
+                                imageProjects: viewStore.imageProjects
                             ),
                             action: HomeAction.segmentation
                         ),

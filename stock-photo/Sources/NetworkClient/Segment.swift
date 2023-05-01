@@ -3,16 +3,16 @@ import Segmentation
 public struct SegmentRequest: Equatable, Encodable {
     public let accessToken: String
     public let fileName: String
-    public let pointSemantic: PointSemantic
+    public let pointSemantics: [PointSemantic]
 
     public init(
         accessToken: String,
         fileName: String,
-        pointSemantic: PointSemantic
+        pointSemantics: [PointSemantic]
     ) {
         self.accessToken = accessToken
         self.fileName = fileName
-        self.pointSemantic = pointSemantic
+        self.pointSemantics = pointSemantics
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -24,8 +24,8 @@ public struct SegmentRequest: Equatable, Encodable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(fileName, forKey: .fileName)
-        try container.encode([pointSemantic.point], forKey: .pointCoords)
-        try container.encode([pointSemantic.label.rawValue], forKey: .pointLabels)
+        try container.encode(pointSemantics.map(\.point), forKey: .pointCoords)
+        try container.encode(pointSemantics.map(\.label.rawValue), forKey: .pointLabels)
     }
 }
 

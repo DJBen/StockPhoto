@@ -2,28 +2,53 @@ import AVFoundation
 import SwiftUI
 import UIKit
 
-public struct ImageViewerView: UIViewControllerRepresentable {
+/// A SwiftUI wrapper for `ImageViewerViewController`, allowing you to display an image with pinch-to-zoom and panning functionality.
+///
+/// The `ImageViewerView` can be initialized with an optional `UIImage` and a closure that is called when a tap occurs on the image.
+/// The closure is passed the tapped pixel's (x, y) coordinates as its parameters.
+public struct ImageViewerView<Overlay: View>: UIViewControllerRepresentable {
+    @Environment(\.imageViewerProxy) private var proxy
+
+    /// The image to be displayed in the view.
     var image: UIImage?
+
+    /// A closure that is called when the image is tapped, passing the tapped pixel's (x, y) coordinates.
     var onTap: ((Int, Int) -> Void)?
 
+    /// The overlay view that is displayed on top of the image.
+    var overlay: () -> Overlay
+
+    /// Initializes a new instance of the `ImageViewerView` with the provided image, a tap handler and an overlay.
+    ///
+    /// - Parameters:
+    ///   - image: The image to be displayed. Defaults to `nil`.
+    ///   - onTap: A closure that is called when the image is tapped, passing the tapped pixel's (x, y) coordinates. Defaults to `nil`.
+    ///   - overlay: An overlay SwiftUI view that is the same frame as the underlying image.
     public init(
         image: UIImage? = nil,
-        onTap: ((Int, Int) -> Void)? = nil
+        onTap: ((Int, Int) -> Void)? = nil,
+        @ViewBuilder overlay: @escaping () -> Overlay
     ) {
         self.image = image
         self.onTap = onTap
+        self.overlay = overlay
     }
 
     public func makeUIViewController(context: Context) -> ImageViewerViewController {
         let viewController = ImageViewerViewController()
         viewController.image = image
         viewController.onTap = onTap
+        viewController.overlay = UIHostingController(rootView: AnyView(overlay()))
+        viewController.proxy = proxy
         return viewController
     }
 
     public func updateUIViewController(_ uiViewController: ImageViewerViewController, context: Context) {
-        uiViewController.image = image
-        uiViewController.onTap = onTap
+        uiViewController.update(
+            image: image,
+            onTap: onTap,
+            overlay: AnyView(overlay())
+        )
     }
 }
 
@@ -31,7 +56,19 @@ public class ImageViewerViewController: UIViewController, UIScrollViewDelegate {
     private var scrollView: UIScrollView!
     private var imageView: UIImageView!
 
+    var proxy: ImageViewerProxy?
+
     var onTap: ((Int, Int) -> Void)?
+
+    /// The overlay view that is displayed on top of the image.
+    /// The overlay view is provided by a SwiftUI view and converted to a UIView using UIHostingController.
+    /// The overlay view is the same frame as the underlying image, and its background is set to be clear.
+    var overlay: UIHostingController<AnyView>? {
+        didSet {
+            oldValue?.view.removeFromSuperview()
+            setUpOverlay()
+        }
+    }
 
     var image: UIImage? {
         didSet {
@@ -40,9 +77,27 @@ public class ImageViewerViewController: UIViewController, UIScrollViewDelegate {
         }
     }
 
+    func update(
+        image: UIImage?,
+        onTap: ((Int, Int) -> Void)?,
+        overlay: AnyView
+    ) {
+        if self.image != image {
+            self.image = image
+        }
+        self.onTap = onTap
+        self.overlay?.rootView = overlay
+    }
+
     public override func viewDidLoad() {
         super.viewDidLoad()
         setup()
+    }
+
+    public override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+
+        updateZoom()
     }
 
     private func setup() {
@@ -69,6 +124,8 @@ public class ImageViewerViewController: UIViewController, UIScrollViewDelegate {
             imageView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor)
         ])
 
+        setUpOverlay()
+
         let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(handlePinch(_:)))
         pinchGesture.cancelsTouchesInView = false
         scrollView.addGestureRecognizer(pinchGesture)
@@ -77,47 +134,36 @@ public class ImageViewerViewController: UIViewController, UIScrollViewDelegate {
         panGesture.cancelsTouchesInView = false
         scrollView.addGestureRecognizer(panGesture)
 
+        let doubleTapGesture = UITapGestureRecognizer(target: self, action: #selector(handleDoubleTap(_:)))
+         doubleTapGesture.numberOfTapsRequired = 2
+         imageView.isUserInteractionEnabled = true
+         imageView.addGestureRecognizer(doubleTapGesture)
+
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
+        // Ensure single tap gesture only fires if double tap doesn't
+        tapGesture.require(toFail: doubleTapGesture)
         imageView.isUserInteractionEnabled = true
         imageView.addGestureRecognizer(tapGesture)
+
+        proxy?.view = view
     }
 
-    public override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-
-        updateZoom()
-    }
-
-    private func updateZoom() {
-        guard let image = imageView?.image else { return }
-        let scrollViewSize = scrollView.bounds.size
-        let imageSize = image.size
-
-        let widthScale = scrollViewSize.width / imageSize.width
-        let heightScale = scrollViewSize.height / imageSize.height
-        let minScale = min(widthScale, heightScale)
-
-        scrollView.minimumZoomScale = minScale
-        scrollView.zoomScale = minScale
-
-        centerImage()
-    }
-
-    private func centerImage() {
-        guard let imageView = imageView else { return }
-        let scrollViewSize = scrollView.bounds.size
-        var horizontalPadding: CGFloat = 0
-        var verticalPadding: CGFloat = 0
-
-        if imageView.frame.size.width < scrollViewSize.width {
-            horizontalPadding = (scrollViewSize.width - imageView.frame.size.width) / 2
+    private func setUpOverlay() {
+        guard overlay?.view.superview == nil else {
+            return
         }
+        if let overlayView = overlay?.view, let imageView = imageView {
+            overlayView.translatesAutoresizingMaskIntoConstraints = false
+            overlayView.backgroundColor = .clear
+            imageView.addSubview(overlayView)
 
-        if imageView.frame.size.height < scrollViewSize.height {
-            verticalPadding = (scrollViewSize.height - imageView.frame.size.height) / 2
+            NSLayoutConstraint.activate([
+                overlayView.leadingAnchor.constraint(equalTo: imageView.leadingAnchor),
+                overlayView.trailingAnchor.constraint(equalTo: imageView.trailingAnchor),
+                overlayView.topAnchor.constraint(equalTo: imageView.topAnchor),
+                overlayView.bottomAnchor.constraint(equalTo: imageView.bottomAnchor)
+            ])
         }
-
-        scrollView.contentInset = UIEdgeInsets(top: verticalPadding, left: horizontalPadding, bottom: verticalPadding, right: horizontalPadding)
     }
 
     @objc private func handlePinch(_ gesture: UIPinchGestureRecognizer) {
@@ -166,6 +212,24 @@ public class ImageViewerViewController: UIViewController, UIScrollViewDelegate {
         gesture.setTranslation(.zero, in: scrollView)
     }
 
+    @objc private func handleDoubleTap(_ gesture: UITapGestureRecognizer) {
+        if scrollView.zoomScale == scrollView.minimumZoomScale {
+            let locationInImageView = gesture.location(in: imageView)
+            let zoomRect = zoomRectForScale(scrollView.maximumZoomScale, center: locationInImageView)
+            scrollView.zoom(to: zoomRect, animated: true)
+        } else {
+            scrollView.setZoomScale(scrollView.minimumZoomScale, animated: true)
+        }
+    }
+
+    private func zoomRectForScale(_ scale: CGFloat, center: CGPoint) -> CGRect {
+        let size = CGSize(width: scrollView.frame.size.width / scale,
+                          height: scrollView.frame.size.height / scale)
+        let origin = CGPoint(x: center.x - size.width / 2,
+                             y: center.y - size.height / 2)
+        return CGRect(origin: origin, size: size)
+    }
+
     @objc private func handleTap(_ gesture: UITapGestureRecognizer) {
         let locationInScrollView = gesture.location(in: scrollView)
         let locationInImageView = scrollView.convert(locationInScrollView, to: imageView)
@@ -184,11 +248,65 @@ public class ImageViewerViewController: UIViewController, UIScrollViewDelegate {
         }
     }
 
+    private func updateZoom() {
+        guard let image = imageView?.image else { return }
+        let scrollViewSize = scrollView.bounds.size
+        if scrollViewSize.equalTo(.zero) {
+            return
+        }
+        let imageSize = image.size
+
+        let widthScale = scrollViewSize.width / imageSize.width
+        let heightScale = scrollViewSize.height / imageSize.height
+        let minScale = min(widthScale, heightScale)
+
+        scrollView.minimumZoomScale = minScale
+        scrollView.zoomScale = minScale
+
+        centerImage()
+    }
+
+    private func centerImage() {
+        guard let imageView = imageView else { return }
+        let scrollViewSize = scrollView.bounds.size
+        var horizontalPadding: CGFloat = 0
+        var verticalPadding: CGFloat = 0
+
+        if imageView.frame.size.width < scrollViewSize.width {
+            horizontalPadding = (scrollViewSize.width - imageView.frame.size.width) / 2
+        }
+
+        if imageView.frame.size.height < scrollViewSize.height {
+            verticalPadding = (scrollViewSize.height - imageView.frame.size.height) / 2
+        }
+
+        scrollView.contentInset = UIEdgeInsets(top: verticalPadding, left: horizontalPadding, bottom: verticalPadding, right: horizontalPadding)
+    }
+
+    // MARK: - ScrollViewDelegate
     public func viewForZooming(in scrollView: UIScrollView) -> UIView? {
         return imageView
     }
 
     public func scrollViewDidZoom(_ scrollView: UIScrollView) {
         centerImage()
+    }
+}
+
+extension ImageViewerView where Overlay == EmptyView {
+    /// Initializes a new instance of the `ImageViewerView` with the provided image and tap handler.
+    ///
+    /// - Parameters:
+    ///   - image: The image to be displayed. Defaults to `nil`.
+    ///   - onTap: A closure that is called when the image is tapped, passing the tapped pixel's (x, y) coordinates. Defaults to `nil`.
+    public init(
+        image: UIImage? = nil,
+        onTap: ((Int, Int) -> Void)? = nil
+    ) {
+        self.image = image
+        self.onTap = onTap
+        self.overlay = {
+            EmptyView()
+        }
     }
 }

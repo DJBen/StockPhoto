@@ -2,6 +2,7 @@ import ComposableArchitecture
 import GoogleSignIn
 import GoogleSignInSwift
 import SwiftUI
+import StockPhotoFoundation
 
 public struct LoginView: View {
     let store: StoreOf<Login>
@@ -32,7 +33,7 @@ public struct LoginView: View {
                                     )
                                 )
                             } else if let error = error {
-                                viewStore.send(.didFailLogin(error))
+                                viewStore.send(.didFailLogin(SPError.catch(error)))
                             }
                         }
                     }
@@ -45,7 +46,7 @@ public struct LoginView: View {
                     case .completed(let credential, controller: _):
                         viewStore.send(.didObtainCredentialFromApple(credential))
                     case .errored(error: let error, controller: _):
-                        viewStore.send(.didFailLogin(error))
+                        viewStore.send(.didFailLogin(SPError.catch(error)))
                     }
                 }
                 .disabled(viewStore.isAuthenticating)

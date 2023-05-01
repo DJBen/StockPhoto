@@ -9,14 +9,14 @@ public struct Home<
     SegmentationReducer: ReducerProtocol<SegmentationState, SegmentationAction>
 >: ReducerProtocol, Sendable {
     private var networkClient: NetworkClient
-    private var segmentationFactory: @Sendable () -> SegmentationReducer
+    private var segmentationReducerFactory: @Sendable () -> SegmentationReducer
 
     public init(
         networkClient: NetworkClient,
-        segmentationFactory: @escaping @Sendable () -> SegmentationReducer
+        segmentationReducerFactory: @escaping @Sendable () -> SegmentationReducer
     ) {
         self.networkClient = networkClient
-        self.segmentationFactory = segmentationFactory
+        self.segmentationReducerFactory = segmentationReducerFactory
     }
 
     public var body: some ReducerProtocol<HomeState, HomeAction> {
@@ -36,10 +36,7 @@ public struct Home<
                         return .didCompleteTransferImage(.loaded(transferredImage))
                     },
                     catch: { error in
-                        if let spError = error as? SPError {
-                            return .didCompleteTransferImage(.failed(spError))
-                        }
-                        return .didCompleteTransferImage(.failed(SPError.unknownError))
+                        return .didCompleteTransferImage(.failed(SPError.catch(error)))
                     }
                 )
             case .didCompleteTransferImage(let transferredImage):
@@ -56,10 +53,7 @@ public struct Home<
                         return .fetchedImageProjects(.loaded(imageProjects.imageProjects), accessToken: accessToken)
                     },
                     catch: { error in
-                        if let spError = error as? SPError {
-                            return .didCompleteTransferImage(.failed(spError))
-                        }
-                        return .fetchedImageProjects(.failed(SPError.unknownError), accessToken: accessToken)
+                        return .fetchedImageProjects(.failed(SPError.catch(error)), accessToken: accessToken)
                     }
                 )
             case .fetchedImageProjects(let imageProjects, let accessToken):
@@ -69,7 +63,7 @@ public struct Home<
                 }
 
                 for imageProject in imageProjects {
-                    if state.images[imageProject.id] == nil || state.images[imageProject.id] == .notLoaded {
+                    if state.images[imageProject.imageFile] == nil || state.images[imageProject.imageFile] == .notLoaded {
                         return .send(.fetchImage(imageProject, accessToken: accessToken))
                     }
                 }
@@ -96,21 +90,18 @@ public struct Home<
                         )
                     },
                     catch: { error in
-                        if let spError = error as? SPError {
-                            return .fetchedImage(
-                                .failed(spError),
-                                imageProject: imageProject,
-                                accessToken: accessToken
-                            )
-                        }
-                        return .fetchedImage(.failed(SPError.unknownError), imageProject: imageProject, accessToken: accessToken)
+                        return .fetchedImage(
+                            .failed(SPError.catch(error)),
+                            imageProject: imageProject,
+                            accessToken: accessToken
+                        )
                     }
                 )
             case .fetchedImage(let imageLoadable, let imageProject, let accessToken):
-                state.images[imageProject.id] = imageLoadable
+                state.images[imageProject.imageFile] = imageLoadable
 
                 for imageProject in state.imageProjects.value ?? [] {
-                    if state.images[imageProject.id] == nil || state.images[imageProject.id] == .notLoaded {
+                    if state.images[imageProject.imageFile] == nil || state.images[imageProject.imageFile] == .notLoaded {
                         return .send(.fetchImage(imageProject, accessToken: accessToken))
                     }
                 }
@@ -130,7 +121,7 @@ public struct Home<
             }
         }
         .ifLet(\.segmentation, action: /HomeAction.segmentation) {
-            segmentationFactory()
+            segmentationReducerFactory()
         }
     }
 }
@@ -141,10 +132,15 @@ extension HomeState {
             guard let selectedImageProjectID = selectedImageProjectID, let image = images[selectedImageProjectID]?.value else {
                 return nil
             }
+            guard let accessToken = accessToken else {
+                return nil
+            }
             return SegmentationState(
-                fileID: selectedImageProjectID,
+                accessToken: accessToken,
+                fileName: selectedImageProjectID,
                 image: image,
-                segmentationResult: segmentationResult
+                segmentationResult: segmentationResult,
+                afterSegmentationSnapshot: afterSegmentationSnapshot
             )
         }
 
@@ -152,7 +148,9 @@ extension HomeState {
             guard let newValue = newValue else {
                 return
             }
+
             self.segmentationResult = newValue.segmentationResult
+            self.afterSegmentationSnapshot = newValue.afterSegmentationSnapshot
         }
     }
 }

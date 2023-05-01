@@ -9,7 +9,8 @@ extension HomeState {
             imageProjects: appState.imageProjects,
             images: appState.images,
             selectedImageProjectID: appState.selectedImageProjectID,
-            segmentationResult: appState.segmentationResult
+            segmentationResult: appState.segmentationResult,
+            afterSegmentationSnapshot: appState.afterSegmentationSnapshot
         )
     }
 
@@ -17,7 +18,9 @@ extension HomeState {
         appState.selectedPhotoPickerItem = selectedPhotosPickerItem
         appState.transferredImage = transferredImage
         appState.imageProjects = imageProjects
-        appState.selectedImageProjectID = selectedImageProjectID
         appState.images = images
+        appState.selectedImageProjectID = selectedImageProjectID
+        appState.segmentationResult = segmentationResult
+        appState.afterSegmentationSnapshot = afterSegmentationSnapshot
     }
 }

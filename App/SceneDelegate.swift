@@ -17,20 +17,24 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
 
-    lazy var imageCache: ImageCaching = ImageCache()
+    var dataCache: DataCaching!
 
-    lazy var store = Store(
-        initialState: StockPhoto.State(),
-        reducer: StockPhoto(
-            networkClient: NetworkClientImpl(
-                imageCache: imageCache
-            )
-        )._printChanges()
-    )
+    var store: StoreOf<StockPhoto>!
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
+
+        dataCache = try! DataCache(name: "projects")
+        store = Store(
+            initialState: StockPhoto.State(),
+            reducer: StockPhoto(
+                networkClient: NetworkClientImpl(
+                    dataCache: dataCache
+                )
+            )._printChanges()
+        )
+
         let rootView = RootView(
             store: store
         )

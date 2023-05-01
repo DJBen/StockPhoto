@@ -13,13 +13,16 @@ public final class NetworkClientImpl: Sendable {
     private static func fetchImageEndpoint(_ fileName: String) -> String {
         return "\(baseURL)/image/\(fileName)"
     }
+    private static let segmentEndpoint = "\(baseURL)/segment_image"
 
-    let imageCache: ImageCaching
+    let dataCache: DataCaching
+    let imageEncoder: ImageEncoders.Default = .init()
+    let imageDecoder: ImageDecoders.Default = .init()
 
     public init(
-        imageCache: ImageCaching
+        dataCache: DataCaching
     ) {
-        self.imageCache = imageCache
+        self.dataCache = dataCache
     }
 }
 
@@ -169,8 +172,9 @@ extension NetworkClientImpl: NetworkClient {
     }
 
     public func fetchImage(_ request: FetchImageRequest) async throws -> UIImage {
-        if let existingImage = imageCache[ImageCacheKey(key: request.fileName)]?.image {
-            return existingImage
+        let cacheKey = "\(request.accessToken)_\(request.fileName)"
+        if dataCache.containsData(for: cacheKey), let imageData = dataCache.cachedData(for: cacheKey) {
+            return try imageDecoder.decode(imageData).image
         }
 
         let urlComponents = URLComponents(string: NetworkClientImpl.fetchImageEndpoint(request.fileName))!
@@ -190,18 +194,24 @@ extension NetworkClientImpl: NetworkClient {
             throw SPError.unparsableImageData
         }
 
-        imageCache[ImageCacheKey(key: request.fileName)] = ImageContainer(image: image)
+        if let encodedImageData = imageEncoder.encode(image) {
+            dataCache.storeData(encodedImageData, for: cacheKey)
+        }
 
         return image
     }
 
     public func segment(_ request: SegmentRequest) async throws -> SegmentResponse {
-        let urlComponents = URLComponents(string: NetworkClientImpl.fetchImageEndpoint(request.fileName))!
+        let urlComponents = URLComponents(string: NetworkClientImpl.segmentEndpoint)!
         let url = urlComponents.url!
 
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "POST"
         urlRequest.setValue("Bearer \(request.accessToken)", forHTTPHeaderField: "Authorization")
+        urlRequest.addValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let jsonEncoder = JSONEncoder()
+        urlRequest.httpBody = try jsonEncoder.encode(request)
 
         let (data, response) = try await URLSession.shared.data(for: urlRequest)
 

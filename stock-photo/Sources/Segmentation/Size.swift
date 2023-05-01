@@ -7,15 +7,10 @@ public struct Size: Equatable, Decodable {
         self.height = height
     }
 
-    private enum CodingKeys: CodingKey {
-        case width
-        case height
-    }
-
     public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.width = try container.decode(Int.self, forKey: .width)
-        self.height = try container.decode(Int.self, forKey: .height)
+        var container = try decoder.unkeyedContainer()
+        self.width = try container.decode(Int.self)
+        self.height = try container.decode(Int.self)
     }
 
     public func encode(to encoder: Encoder) throws {
