@@ -14,12 +14,21 @@ public struct Segmentation: ReducerProtocol, Sendable {
     public var body: some ReducerProtocol<SegmentationState, SegmentationAction> {
         Reduce { state, action in
             switch action {
+            case .undoPointSemantic:
+                state.pointSemantics.removeLast()
+                return .none
+            case .addPointSemantic(let pointSemantic):
+                state.pointSemantics.append(pointSemantic)
+                return .none
             case .dismissSegmentation:
                 // Handled by the parent
                 return .none
-            case .requestSegmentation(let segID, let accessToken, let snapshot):
+            case .requestSegmentation(
+                let segID,
+                let accessToken,
+                let sourceImage
+            ):
                 state.segmentationResult[segID] = .loading
-                state.afterSegmentationSnapshot = snapshot
 
                 return .task(
                     operation: {
@@ -30,16 +39,32 @@ public struct Segmentation: ReducerProtocol, Sendable {
                                 pointSemantics: segID.pointSemantics
                             )
                         )
-                        return .didCompleteSegmentation(.loaded(response.masks), segID: segID)
+                        var segmentedImage: UIImage?
+                        if let firstMask = response.masks.first {
+                            segmentedImage = sourceImage.croppedImage(
+                                using: firstMask.counts
+                            )
+                        }
+                        return .didCompleteSegmentation(
+                            .loaded(response.masks),
+                            segmentedImage: segmentedImage,
+                            segID: segID
+                        )
                     },
                     catch: { error in
-                        return .didCompleteSegmentation(.failed(SPError.catch(error)), segID: segID)
+                        return .didCompleteSegmentation(
+                            .failed(SPError.catch(error)),
+                            segmentedImage: nil,
+                            segID: segID
+                        )
                     }
                 )
                 .cancellable(id: segID)
-            case .didCompleteSegmentation(let masksLoadable, let segID):
+            case .didCompleteSegmentation(let masksLoadable, let segmentedImage, let segID):
                 state.segmentationResult[segID] = masksLoadable
-                state.afterSegmentationSnapshot = nil
+                if let segmentedImage = segmentedImage {
+                    state.segmentedImages[segID] = segmentedImage
+                }
                 return .none
             }
         }

@@ -11,8 +11,7 @@ public struct HomeState: Equatable {
     public var imageProjects: Loadable<[ImageProject], SPError>
     public var images: [String: Loadable<UIImage, SPError>]
     public var selectedImageProjectID: String?
-    public var segmentationResult: [SegmentationIdentifier: Loadable<[Mask], SPError>]
-    public var afterSegmentationSnapshot: UIImage?
+    public var segmentationModel: SegmentationModel
 
     public init(
         accessToken: String?,
@@ -21,8 +20,7 @@ public struct HomeState: Equatable {
         imageProjects: Loadable<[ImageProject], SPError>,
         images: [String: Loadable<UIImage, SPError>],
         selectedImageProjectID: String?,
-        segmentationResult: [SegmentationIdentifier: Loadable<[Mask], SPError>],
-        afterSegmentationSnapshot: UIImage?
+        segmentationModel: SegmentationModel
     ) {
         self.accessToken = accessToken
         self.selectedPhotosPickerItem = selectedPhotosPickerItem
@@ -30,8 +28,7 @@ public struct HomeState: Equatable {
         self.imageProjects = imageProjects
         self.images = images
         self.selectedImageProjectID = selectedImageProjectID
-        self.segmentationResult = segmentationResult
-        self.afterSegmentationSnapshot = afterSegmentationSnapshot
+        self.segmentationModel = segmentationModel
     }
 }
 

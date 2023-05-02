@@ -72,10 +72,13 @@ public class ImageViewerViewController: UIViewController, UIScrollViewDelegate {
 
     var image: UIImage? {
         didSet {
+            needsZoomReset = true
             imageView?.image = image
             updateZoom()
         }
     }
+
+    private var needsZoomReset: Bool = true
 
     func update(
         image: UIImage?,
@@ -97,7 +100,9 @@ public class ImageViewerViewController: UIViewController, UIScrollViewDelegate {
     public override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
 
-        updateZoom()
+        if needsZoomReset {
+            updateZoom()
+        }
     }
 
     private func setup() {
@@ -250,6 +255,9 @@ public class ImageViewerViewController: UIViewController, UIScrollViewDelegate {
 
     private func updateZoom() {
         guard let image = imageView?.image else { return }
+
+        needsZoomReset = false
+
         let scrollViewSize = scrollView.bounds.size
         if scrollViewSize.equalTo(.zero) {
             return

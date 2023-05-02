@@ -136,11 +136,10 @@ extension HomeState {
                 return nil
             }
             return SegmentationState(
+                model: segmentationModel,
                 accessToken: accessToken,
                 fileName: selectedImageProjectID,
-                image: image,
-                segmentationResult: segmentationResult,
-                afterSegmentationSnapshot: afterSegmentationSnapshot
+                image: image
             )
         }
 
@@ -149,8 +148,7 @@ extension HomeState {
                 return
             }
 
-            self.segmentationResult = newValue.segmentationResult
-            self.afterSegmentationSnapshot = newValue.afterSegmentationSnapshot
+            self.segmentationModel = newValue.model
         }
     }
 }

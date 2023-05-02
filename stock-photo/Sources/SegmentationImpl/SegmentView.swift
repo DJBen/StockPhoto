@@ -8,23 +8,8 @@ import SwiftUI
 public struct SegmentationView: View {
     let store: StoreOf<Segmentation>
 
-    @State var pointSemantics: [PointSemantic] = []
-
     public init(store: StoreOf<Segmentation>) {
         self.store = store
-    }
-
-    private func isSegmenting(_ viewStore: ViewStore<SegmentationState, SegmentationAction>) -> Bool {
-        let segID = SegmentationIdentifier(
-            fileName: viewStore.fileName,
-            pointSemantics: pointSemantics
-        )
-        switch viewStore.segmentationResult[segID] {
-        case .loading:
-            return true
-        default:
-            return false
-        }
     }
 
     public var body: some View {
@@ -36,19 +21,31 @@ public struct SegmentationView: View {
                         onTap: { x, y in
                             // Don't add points that are within 10px of each other
                             let point = Point(x: x, y: y)
-                            if pointSemantics.contains(where: {
+                            if viewStore.pointSemantics.contains(where: {
                                 $0.point.distance(to: point) < 10
                             }) {
                                 return
                             }
-
-                            pointSemantics.append(PointSemantic(point: point, label: .foreground))
+                            viewStore.send(
+                                .addPointSemantic(
+                                    PointSemantic(point: point, label: .foreground)
+                                )
+                            )
                         }
                     ) {
-                        ForegroundOverlay(
-                            pointSemantics: pointSemantics
-                        )
-                        .foregroundColor(.green)
+                        if let segmentedImage = viewStore.segmentedImages[viewStore.segID] {
+                            Image(
+                                uiImage: segmentedImage
+                            )
+                            .background {
+                                Color.black.opacity(0.75)
+                            }
+                        } else {
+                            ForegroundOverlay(
+                                pointSemantics: viewStore.pointSemantics
+                            )
+                            .foregroundColor(.green)
+                        }
                     }
 
                     instructionsLabel
@@ -59,13 +56,13 @@ public struct SegmentationView: View {
                         placement: .bottomBar
                     ) {
                         Button(action: {
-                            pointSemantics.removeLast()
+                            viewStore.send(.undoPointSemantic)
                         }) {
                             Image(
                                 systemName: "arrow.uturn.backward"
                             )
                         }
-                        .disabled(pointSemantics.isEmpty)
+                        .disabled(viewStore.pointSemantics.isEmpty)
                     }
 
                     ToolbarItem(placement: .bottomBar) {
@@ -76,12 +73,9 @@ public struct SegmentationView: View {
                         Button(action: {
                             viewStore.send(
                                 .requestSegmentation(
-                                    SegmentationIdentifier(
-                                        fileName: viewStore.fileName,
-                                        pointSemantics: pointSemantics
-                                    ),
+                                    viewStore.segID,
                                     accessToken: viewStore.accessToken,
-                                    snapshot: proxy.captureSnapshot()
+                                    sourceImage: viewStore.image
                                 )
                             )
                         }) {
@@ -92,19 +86,18 @@ public struct SegmentationView: View {
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(.green)
-                        .disabled(pointSemantics.isEmpty || isSegmenting(viewStore))
+                        .disabled(viewStore.pointSemantics.isEmpty || viewStore.isSegmenting)
                     }
                 }
                 .fullScreenCover(
                     isPresented: Binding<Bool>(
                         get: {
-                            isSegmenting(viewStore)
+                            viewStore.isSegmenting
                         },
                         set: { _ in }
                     )
                 ) {
                     TranslucentFullScreenCover(
-                        snapshot: viewStore.afterSegmentationSnapshot
                     )
                 }
                 .onDisappear {
@@ -151,8 +144,6 @@ struct ForegroundOverlay: Shape {
 }
 
 struct TranslucentFullScreenCover: View {
-    let snapshot: UIImage?
-
     var body: some View {
         ProgressView {
             VStack(spacing: 8) {
@@ -195,11 +186,10 @@ struct SegmentationView_Previews: PreviewProvider {
             SegmentationView(
                 store: StoreOf<Segmentation>(
                     initialState: SegmentationState(
+                        model: SegmentationModel(),
                         accessToken: "",
                         fileName: "Example.jpg",
-                        image: UIImage(named: "Example", in: .module, with: nil)!,
-                        segmentationResult: [:],
-                        afterSegmentationSnapshot: nil
+                        image: UIImage(named: "Example", in: .module, with: nil)!
                     ),
                     reducer: EmptyReducer()
                 )

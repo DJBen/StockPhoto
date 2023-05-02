@@ -24,8 +24,7 @@ public struct StockPhoto: ReducerProtocol, Sendable {
         public var imageProjects: Loadable<[ImageProject], SPError>
         public var images: [String: Loadable<UIImage, SPError>]
         public var selectedImageProjectID: String?
-        public var segmentationResult: [SegmentationIdentifier: Loadable<[Mask], SPError>]
-        public var afterSegmentationSnapshot: UIImage?
+        public var segmentationModel: SegmentationModel
         
         public var home: HomeState {
             get {
@@ -44,8 +43,7 @@ public struct StockPhoto: ReducerProtocol, Sendable {
             self.transferredImage = .notLoaded
             self.imageProjects = .loading
             self.images = [:]
-            self.selectedImageProjectID = nil
-            self.segmentationResult = [:]
+            self.segmentationModel = SegmentationModel()
         }
     }
 
