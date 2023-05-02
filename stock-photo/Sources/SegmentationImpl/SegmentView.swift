@@ -19,21 +19,26 @@ public struct SegmentationView: View {
                     ImageViewerView(
                         image: viewStore.image,
                         onTap: { x, y in
+                            // Don't add points if there is currently segmented image
+                            if viewStore.segmentedImage[viewStore.segID] != nil {
+                                return
+                            }
                             // Don't add points that are within 10px of each other
                             let point = Point(x: x, y: y)
-                            if viewStore.pointSemantics.contains(where: {
+                            if viewStore.currentPointSemantics.contains(where: {
                                 $0.point.distance(to: point) < 10
                             }) {
                                 return
                             }
                             viewStore.send(
                                 .addPointSemantic(
-                                    PointSemantic(point: point, label: .foreground)
+                                    PointSemantic(point: point, label: .foreground),
+                                    fileName: viewStore.fileName
                                 )
                             )
                         }
                     ) {
-                        if let segmentedImage = viewStore.segmentedImages[viewStore.segID] {
+                        if let segmentedImage = viewStore.segmentedImage[viewStore.segID] {
                             Image(
                                 uiImage: segmentedImage
                             )
@@ -42,52 +47,17 @@ public struct SegmentationView: View {
                             }
                         } else {
                             ForegroundOverlay(
-                                pointSemantics: viewStore.pointSemantics
+                                pointSemantics: viewStore.currentPointSemantics
                             )
                             .foregroundColor(.green)
                         }
                     }
 
-                    instructionsLabel
+                    markingInstructionsLabel(viewStore)
                 }
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
-                    ToolbarItem(
-                        placement: .bottomBar
-                    ) {
-                        Button(action: {
-                            viewStore.send(.undoPointSemantic)
-                        }) {
-                            Image(
-                                systemName: "arrow.uturn.backward"
-                            )
-                        }
-                        .disabled(viewStore.pointSemantics.isEmpty)
-                    }
-
-                    ToolbarItem(placement: .bottomBar) {
-                        Spacer()
-                    }
-
-                    ToolbarItem(placement: .bottomBar) {
-                        Button(action: {
-                            viewStore.send(
-                                .requestSegmentation(
-                                    viewStore.segID,
-                                    accessToken: viewStore.accessToken,
-                                    sourceImage: viewStore.image
-                                )
-                            )
-                        }) {
-                            Text(
-                                "Extract subject"
-                            )
-                            .fontWeight(.semibold)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.green)
-                        .disabled(viewStore.pointSemantics.isEmpty || viewStore.isSegmenting)
-                    }
+                    toolbarContent(viewStore)
                 }
                 .fullScreenCover(
                     isPresented: Binding<Bool>(
@@ -103,19 +73,107 @@ public struct SegmentationView: View {
                 .onDisappear {
                     viewStore.send(.dismissSegmentation)
                 }
+                .alert(
+                    isPresented: viewStore.binding(
+                        get: \.isShowingDeletingSegmentationAlert,
+                        send: SegmentationAction.setIsShowingDeletingSegmentationAlert
+                    )
+                ) {
+                    Alert(
+                        title: Text(
+                            "Discard image",
+                            comment: "The title of alert view when confirming discarding segmented image."
+                        ),
+                        message: Text(
+                            "Are you sure you want to discard this extraction of your subject?",
+                            comment: "The message of alert view when confirming discarding segmented image."
+                        ),
+                        primaryButton: .destructive(
+                            Text(
+                                "Discard",
+                                comment: "The primary button of alert view when confirming discarding segmented image."
+                            )
+                        ) {
+                            viewStore.send(.discardSegmentedImage(viewStore.segID))
+                        },
+                        secondaryButton: .cancel()
+                    )
+                }
             }
         }
     }
 
-    @ViewBuilder private var instructionsLabel: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(alignment: .lastTextBaseline) {
-                Image(systemName: "circle.fill").foregroundColor(.green)
-                Text(
-                    "Identify the subject you want to extract from the background. In most cases, one is sufficient. You may mark multiple times for complex subjects."
-                )
-                .multilineTextAlignment(.leading)
-                .foregroundColor(.secondary)
+    @ToolbarContentBuilder private func toolbarContent(
+        _ viewStore: ViewStoreOf<Segmentation>
+    ) -> some ToolbarContent {
+        if let segmentedImage = viewStore.segmentedImage[viewStore.segID] {
+            ToolbarItemGroup(
+                placement: .bottomBar
+            ) {
+                Button(
+                    role: .destructive,
+                    action: {
+                        viewStore.send(.setIsShowingDeletingSegmentationAlert(true))
+                    }
+                ) {
+                    Image(
+                        systemName: "trash"
+                    )
+                    .tint(.red)
+                }
+                .disabled(viewStore.currentPointSemantics.isEmpty)
+
+                Spacer()
+            }
+        } else {
+            ToolbarItemGroup(
+                placement: .bottomBar
+            ) {
+                Button(action: {
+                    viewStore.send(.undoPointSemantic(fileName: viewStore.fileName))
+                }) {
+                    Image(
+                        systemName: "arrow.uturn.backward"
+                    )
+                }
+                .disabled(viewStore.currentPointSemantics.isEmpty)
+
+                Spacer()
+
+                Button(action: {
+                    viewStore.send(
+                        .requestSegmentation(
+                            viewStore.segID,
+                            accessToken: viewStore.accessToken,
+                            sourceImage: viewStore.image
+                        )
+                    )
+                }) {
+                    Text(
+                        "Extract subject"
+                    )
+                    .fontWeight(.semibold)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.green)
+                .disabled(viewStore.currentPointSemantics.isEmpty || viewStore.isSegmenting)
+            }
+        }
+    }
+
+    @ViewBuilder private func markingInstructionsLabel(_ viewStore: ViewStoreOf<Segmentation>) -> some View {
+        Group {
+            if viewStore.segmentedImage[viewStore.segID] != nil {
+
+            } else {
+                HStack(alignment: .lastTextBaseline) {
+                    Image(systemName: "circle.fill").foregroundColor(.green)
+                    Text(
+                        "Identify the subject you want to extract from the background. In most cases, one is sufficient. You may mark multiple regions if it doesn't pick up a complex subject."
+                    )
+                    .multilineTextAlignment(.leading)
+                    .foregroundColor(.secondary)
+                }
             }
         }
         .font(.caption)

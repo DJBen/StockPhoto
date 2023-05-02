@@ -25,7 +25,7 @@ public struct HomeView<
             let imageLoadable: Loadable<UIImage, SPError>
         }
 
-        var images: [ImageItem]
+        var imageItems: [ImageItem]
 
         static func project(_ homeState: HomeState) -> ViewState {
             ViewState(
@@ -34,9 +34,12 @@ public struct HomeView<
                 transferredImage: homeState.transferredImage,
                 imageProjects: homeState.imageProjects,
                 selectedImageProjectID: homeState.selectedImageProjectID,
-                images: homeState.images.map { (key, value) in
-                    ImageItem(fileName: key, imageLoadable: value)
-                }
+                imageItems: homeState.imageProjects.value?.map { imageProject in
+                    ImageItem(
+                        fileName: imageProject.imageFile,
+                        imageLoadable: homeState.images[imageProject.imageFile] ?? .loading
+                    )
+                } ?? []
             )
         }
     }
@@ -55,33 +58,44 @@ public struct HomeView<
             observe: ViewState.project
         ) { viewStore in
             VStack {
-
-                List(
-                    selection: viewStore.binding(
-                        get: \.selectedImageProjectID,
-                        send: HomeAction.selectImageProjectID
-                    )
-                ) {
-                    ForEach(viewStore.images, id: \.fileName) { item in
-                        NavigationLink(
-                            value: StockPhotoDestination.selectedImageProject(item.fileName)
-                        ) {
-                            Group {
-                                if let image = item.imageLoadable.value {
-                                    Image(
-                                        uiImage: image
-                                    )
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                } else {
-                                    ProgressView()
+                if viewStore.imageProjects.isLoading {
+                    Spacer()
+                    ProgressView {
+                        Text(
+                            "Loading projects...",
+                            comment: "The loading text of the listing image request."
+                        )
+                        .multilineTextAlignment(.center)
+                    }
+                    Spacer()
+                } else {
+                    List(
+                        selection: viewStore.binding(
+                            get: \.selectedImageProjectID,
+                            send: HomeAction.selectImageProjectID
+                        )
+                    ) {
+                        ForEach(viewStore.imageItems, id: \.fileName) { item in
+                            NavigationLink(
+                                value: StockPhotoDestination.selectedImageProject(item.fileName)
+                            ) {
+                                Group {
+                                    if let image = item.imageLoadable.value {
+                                        Image(
+                                            uiImage: image
+                                        )
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                    } else {
+                                        ProgressView()
+                                    }
                                 }
+                                .frame(maxHeight: 100)
                             }
-                            .frame(maxHeight: 100)
                         }
                     }
+                    .listStyle(.plain)
                 }
-                .listStyle(.plain)
 
                 HStack(spacing: 16) {
                     Button(action: {
@@ -135,7 +149,7 @@ public struct HomeView<
                         store.scope(
                             state: SegmentationState.projectToHomeState(
                                 fileName: fileName,
-                                imageLoadable: viewStore.images.first { $0.fileName == fileName }?.imageLoadable,
+                                imageLoadable: viewStore.imageItems.first { $0.fileName == fileName }?.imageLoadable,
                                 imageProjects: viewStore.imageProjects
                             ),
                             action: HomeAction.segmentation

@@ -14,11 +14,19 @@ public struct Segmentation: ReducerProtocol, Sendable {
     public var body: some ReducerProtocol<SegmentationState, SegmentationAction> {
         Reduce { state, action in
             switch action {
-            case .undoPointSemantic:
-                state.pointSemantics.removeLast()
+            case .undoPointSemantic(let fileName):
+                if let pointSemantics = state.pointSemantics[fileName], !pointSemantics.isEmpty {
+                    state.pointSemantics[fileName]?.removeLast()
+                }
                 return .none
-            case .addPointSemantic(let pointSemantic):
-                state.pointSemantics.append(pointSemantic)
+            case .addPointSemantic(let pointSemantic, let fileName):
+                if state.pointSemantics[fileName] == nil {
+                    state.pointSemantics[fileName] = []
+                }
+                state.pointSemantics[fileName]?.append(pointSemantic)
+                return .none
+            case .discardSegmentedImage(let segID):
+                state.segmentedImage[segID] = nil
                 return .none
             case .dismissSegmentation:
                 // Handled by the parent
@@ -39,14 +47,18 @@ public struct Segmentation: ReducerProtocol, Sendable {
                                 pointSemantics: segID.pointSemantics
                             )
                         )
-                        var segmentedImage: UIImage?
-                        if let firstMask = response.masks.first {
-                            segmentedImage = sourceImage.croppedImage(
-                                using: firstMask.counts
+                        let scoredMasks = zip(response.masks, response.scores).map {
+                            ScoredMask(mask: $0, score: $1)
+                        }
+                        let segmentedImage = scoredMasks.max(
+                        )
+                        .flatMap { mask in
+                            sourceImage.croppedImage(
+                                using: mask.counts
                             )
                         }
                         return .didCompleteSegmentation(
-                            .loaded(response.masks),
+                            .loaded(scoredMasks),
                             segmentedImage: segmentedImage,
                             segID: segID
                         )
@@ -62,9 +74,10 @@ public struct Segmentation: ReducerProtocol, Sendable {
                 .cancellable(id: segID)
             case .didCompleteSegmentation(let masksLoadable, let segmentedImage, let segID):
                 state.segmentationResult[segID] = masksLoadable
-                if let segmentedImage = segmentedImage {
-                    state.segmentedImages[segID] = segmentedImage
-                }
+                state.segmentedImage[segID] = segmentedImage
+                return .none
+            case .setIsShowingDeletingSegmentationAlert(let isShowing):
+                state.isShowingDeletingSegmentationAlert = isShowing
                 return .none
             }
         }

@@ -45,6 +45,10 @@ let package = Package(
             from: Version(0, 52, 0)
         ),
         .package(
+            url: "https://github.com/pointfreeco/swift-custom-dump.git",
+            from: Version(0, 10, 2)
+        ),
+        .package(
             url: "https://github.com/pointfreeco/swift-dependencies.git",
             from: Version(0, 4, 1)
         ),
@@ -186,6 +190,7 @@ let package = Package(
         .target(
             name: "Segmentation",
             dependencies: [
+                .product(name: "CustomDump", package: "swift-custom-dump"),
                 "StockPhotoFoundation",
             ]
         ),

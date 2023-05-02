@@ -9,20 +9,45 @@ public struct SegmentationModel: Equatable {
     /// The segment masks generated from the request identified by `SegmentationIdentifier`.
     ///
     /// Multiple masks may be generated from the same image, if their point semantics are different.
-    public var segmentationResult: [SegmentationIdentifier: Loadable<[Mask], SPError>]
+    public var segmentationResult: [SegmentationIdentifier: Loadable<[ScoredMask], SPError>]
 
-    public var pointSemantics: [PointSemantic]
+    /// The current on-screen point semantics.
+    public var pointSemantics: [String: [PointSemantic]]
 
-    public var segmentedImages: [SegmentationIdentifier: UIImage] = [:]
+    public var segmentedImage: [SegmentationIdentifier: UIImage] = [:]
+
+    public var isShowingDeletingSegmentationAlert: Bool
+
+    public struct Cutout: Equatable {
+        public let segmentationIdentifier: SegmentationIdentifier
+        public let mask: Mask
+        public let croppedImage: UIImage
+
+        public init(
+            segmentationIdentifier: SegmentationIdentifier,
+            mask: Mask,
+            croppedImage: UIImage
+        ) {
+            self.segmentationIdentifier = segmentationIdentifier
+            self.mask = mask
+            self.croppedImage = croppedImage
+        }
+    }
+
+    public var cutouts: [String: [Cutout]]
 
     public init(
-        segmentationResult: [SegmentationIdentifier : Loadable<[Mask], SPError>] = [:],
-        pointSemantics: [PointSemantic] = [],
-        segmentedImages: [SegmentationIdentifier: UIImage] = [:]
+        segmentationResult: [SegmentationIdentifier : Loadable<[ScoredMask], SPError>] = [:],
+        pointSemantics: [String: [PointSemantic]] = [:],
+        segmentedImage: [SegmentationIdentifier: UIImage] = [:],
+        cutouts: [String: [Cutout]] = [:],
+        isShowingDeletingSegmentationAlert: Bool = false
     ) {
         self.segmentationResult = segmentationResult
         self.pointSemantics = pointSemantics
-        self.segmentedImages = segmentedImages
+        self.segmentedImage = segmentedImage
+        self.cutouts = cutouts
+        self.isShowingDeletingSegmentationAlert = isShowingDeletingSegmentationAlert
     }
 }
 
@@ -49,8 +74,17 @@ public struct SegmentationState: Equatable {
     public var segID: SegmentationIdentifier {
         return SegmentationIdentifier(
             fileName: fileName,
-            pointSemantics: model.pointSemantics
+            pointSemantics: model.pointSemantics[fileName] ?? []
         )
+    }
+
+    public var currentPointSemantics: [PointSemantic] {
+        get {
+            model.pointSemantics[fileName] ?? []
+        }
+        set {
+            model.pointSemantics[fileName] = newValue
+        }
     }
 
     public init(
@@ -76,8 +110,9 @@ public struct SegmentationState: Equatable {
 }
 
 public enum SegmentationAction: Equatable {
-    case undoPointSemantic
-    case addPointSemantic(PointSemantic)
+    case undoPointSemantic(fileName: String)
+    case addPointSemantic(PointSemantic, fileName: String)
+    case discardSegmentedImage(SegmentationIdentifier)
     case dismissSegmentation
     case requestSegmentation(
         SegmentationIdentifier,
@@ -85,8 +120,9 @@ public enum SegmentationAction: Equatable {
         sourceImage: UIImage
     )
     case didCompleteSegmentation(
-        Loadable<[Mask], SPError>,
+        Loadable<[ScoredMask], SPError>,
         segmentedImage: UIImage?,
         segID: SegmentationIdentifier
     )
+    case setIsShowingDeletingSegmentationAlert(Bool)
 }
