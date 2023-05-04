@@ -9,7 +9,8 @@ extension HomeState {
             imageProjects: appState.imageProjects,
             images: appState.images,
             selectedImageProjectID: appState.selectedImageProjectID,
-            segmentationModel: appState.segmentationModel
+            segmentationModel: appState.segmentationModel,
+            displayingErrors: appState.displayingErrors
         )
     }
 
@@ -20,5 +21,6 @@ extension HomeState {
         appState.images = images
         appState.selectedImageProjectID = selectedImageProjectID
         appState.segmentationModel = segmentationModel
+        appState.displayingErrors = displayingErrors
     }
 }

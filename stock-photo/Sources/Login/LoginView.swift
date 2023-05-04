@@ -56,7 +56,6 @@ public struct LoginView: View {
             .onAppear {
                 viewStore.send(.checkExistingAccessToken)
             }
-            .alert(store.scope(state: \.alert), dismiss: .dismissErrorAlert)
         }
     }
 }

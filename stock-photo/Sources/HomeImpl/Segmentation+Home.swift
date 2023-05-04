@@ -23,7 +23,8 @@ extension SegmentationState {
                 model: homeState.segmentationModel,
                 accessToken: accessToken,
                 fileName: imageProject.imageFile,
-                image: image
+                image: image,
+                displayErrors: homeState.displayingErrors
             )
         }
     }

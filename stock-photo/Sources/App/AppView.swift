@@ -41,8 +41,11 @@ public struct AppView: View {
                 )
                 .fullScreenCover(
                     isPresented: viewStore.binding(
-                        get: { $0.login.isShowingLoginSheet },
-                        send: { StockPhoto.Action.login(.setLoginSheetPresented($0)) }
+                        get: {
+                            $0.login.isShowingLoginSheet
+                        },
+                        send: { StockPhoto.Action.login(.setLoginSheetPresented($0))
+                        }
                     )
                 ) {
                     LoginView(
@@ -52,6 +55,10 @@ public struct AppView: View {
                         )
                     )
                 }
+                .alert(
+                    store.scope(state: \.alertState),
+                    dismiss: .dismissError
+                )
             }
         }
     }

@@ -247,7 +247,8 @@ struct SegmentationView_Previews: PreviewProvider {
                         model: SegmentationModel(),
                         accessToken: "",
                         fileName: "Example.jpg",
-                        image: UIImage(named: "Example", in: .module, with: nil)!
+                        image: UIImage(named: "Example", in: .module, with: nil)!,
+                        displayErrors: []
                     ),
                     reducer: EmptyReducer()
                 )

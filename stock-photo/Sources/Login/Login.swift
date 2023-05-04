@@ -21,7 +21,7 @@ public struct Login: ReducerProtocol, Sendable {
         ///
         /// Signin buttons should be disabled, until either successful or failed result returns.
         public var isAuthenticating: Bool = false
-        public var alert: AlertState<Action>?
+        public var displayingErrors: [SPError] = []
 
         public init() {}
     }
@@ -37,7 +37,6 @@ public struct Login: ReducerProtocol, Sendable {
         case didNotFindAccessToken
 
         case setLoginSheetPresented(Bool)
-        case dismissErrorAlert
     }
 
     @Dependency(\.keychain) var keychain
@@ -71,9 +70,7 @@ public struct Login: ReducerProtocol, Sendable {
                     }
                 }
             case .didFailLogin(let error):
-                state.alert = AlertState(title: {
-                    TextState(error.localizedDescription)
-                })
+                state.displayingErrors.append(error)
                 return .none
             case .didObtainCredentialFromGoogle(let credentials):
                 return .task(
@@ -135,9 +132,6 @@ public struct Login: ReducerProtocol, Sendable {
                 return .none
             case .setLoginSheetPresented(let isPresented):
                 state.isShowingLoginSheet = isPresented
-                return .none
-            case .dismissErrorAlert:
-                state.alert = nil
                 return .none
             }
         }

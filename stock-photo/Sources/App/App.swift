@@ -25,6 +25,7 @@ public struct StockPhoto: ReducerProtocol, Sendable {
         public var images: [String: Loadable<UIImage, SPError>]
         public var selectedImageProjectID: String?
         public var segmentationModel: SegmentationModel
+        public var displayingErrors: [SPError]
         
         public var home: HomeState {
             get {
@@ -44,6 +45,21 @@ public struct StockPhoto: ReducerProtocol, Sendable {
             self.imageProjects = .loading
             self.images = [:]
             self.segmentationModel = SegmentationModel()
+            self.displayingErrors = []
+        }
+
+        var alertState: AlertState<Action>? {
+            guard let firstError = displayingErrors.first else {
+                return nil
+            }
+            return AlertState(
+                title: {
+                    TextState(firstError.title)
+                },
+                message: {
+                    TextState(firstError.localizedDescription)
+                }
+            )
         }
     }
 
@@ -54,6 +70,7 @@ public struct StockPhoto: ReducerProtocol, Sendable {
         case home(HomeAction)
         case login(Login.Action)
         case imageCapture(ImageCaptureAction)
+        case dismissError
     }
 
     private var networkClient: NetworkClient
@@ -107,6 +124,12 @@ public struct StockPhoto: ReducerProtocol, Sendable {
                     default:
                         break
                     }
+                    return .none
+                case .dismissError:
+                    if state.displayingErrors.isEmpty {
+                        return .none
+                    }
+                    state.displayingErrors.removeFirst()
                     return .none
                 }
             }

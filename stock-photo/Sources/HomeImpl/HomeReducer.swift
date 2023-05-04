@@ -57,6 +57,9 @@ public struct Home<
                     }
                 )
             case .fetchedImageProjects(let imageProjects, let accessToken):
+                if let error = imageProjects.error {
+                    state.displayingErrors.append(error)
+                }
                 state.imageProjects = imageProjects
                 guard let imageProjects = imageProjects.value else {
                     return .none
@@ -98,6 +101,10 @@ public struct Home<
                     }
                 )
             case .fetchedImage(let imageLoadable, let imageProject, let accessToken):
+                if let error = imageLoadable.error {
+                    state.displayingErrors.append(error)
+                }
+
                 state.images[imageProject.imageFile] = imageLoadable
 
                 for imageProject in state.imageProjects.value ?? [] {
@@ -139,7 +146,8 @@ extension HomeState {
                 model: segmentationModel,
                 accessToken: accessToken,
                 fileName: selectedImageProjectID,
-                image: image
+                image: image,
+                displayErrors: displayingErrors
             )
         }
 

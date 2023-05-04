@@ -6,6 +6,23 @@ public enum SPError: LocalizedError {
     case emptyTransferredImage
     case unknownError(Error)
 
+    public var title: String {
+        switch self {
+        case .httpError:
+            return NSLocalizedString(
+                "SPError.httpError.title",
+                value: "Network error",
+                comment: "The title of a network error"
+            )
+        default:
+            return NSLocalizedString(
+                "SPError.otherErrors.title",
+                value: "Oops",
+                comment: "The title of errors other than network errors"
+            )
+        }
+    }
+
     public var errorDescription: String? {
         switch self {
         case .httpError(let httpError):
@@ -31,9 +48,36 @@ public enum SPError: LocalizedError {
         }
     }
 
+    public var recoverySuggestion: String? {
+        switch self {
+        case .httpError(let httpError):
+            return httpError.recoverySuggestion
+        case .unparsableImageData:
+            return NSLocalizedString(
+                "SPError.unparsableImageData.recoverySuggestion",
+                value: "You may try to delete and reupload the image",
+                comment: "Happens when we fail to parse the downloaded image data"
+            )
+        case .emptyTransferredImage:
+            return NSLocalizedString(
+                "SPError.emptyTransferredImage.recoverySuggestion",
+                value: "Please select your image again",
+                comment: "Happens when we fail to parse the downloaded image data"
+            )
+        case .unknownError:
+            return NSLocalizedString(
+                "SPError.unknownError.unknownError",
+                value: "Please try again",
+                comment: "An unknown error"
+            )
+        }
+    }
+
     public static func `catch`(_ error: Error) -> SPError {
         if let spError = error as? SPError {
             return spError
+        } else if let httpError = error as? HTTPError {
+            return .httpError(httpError)
         }
         return .unknownError(error)
     }

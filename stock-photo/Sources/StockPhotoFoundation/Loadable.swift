@@ -24,6 +24,15 @@ public enum Loadable<T, ErrorType: Error> {
             return nil
         }
     }
+
+    public var error: ErrorType? {
+        switch self {
+        case .failed(let error):
+            return error
+        default:
+            return nil
+        }
+    }
 }
 
 extension Loadable: Equatable where T: Equatable, ErrorType: Equatable {}

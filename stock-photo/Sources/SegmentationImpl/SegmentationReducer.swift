@@ -73,6 +73,9 @@ public struct Segmentation: ReducerProtocol, Sendable {
                 )
                 .cancellable(id: segID)
             case .didCompleteSegmentation(let masksLoadable, let segmentedImage, let segID):
+                if let error = masksLoadable.error {
+                    state.displayErrors.append(error)
+                }
                 state.segmentationResult[segID] = masksLoadable
                 state.segmentedImage[segID] = segmentedImage
                 return .none
