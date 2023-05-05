@@ -12,7 +12,7 @@ public struct SegmentationModel: Equatable {
     public var segmentationResult: [SegmentationIdentifier: Loadable<[ScoredMask], SPError>]
 
     /// The current on-screen point semantics.
-    public var pointSemantics: [String: [PointSemantic]]
+    public var pointSemantics: [Int: [PointSemantic]]
 
     public var segmentedImage: [SegmentationIdentifier: UIImage] = [:]
 
@@ -38,7 +38,7 @@ public struct SegmentationModel: Equatable {
 
     public init(
         segmentationResult: [SegmentationIdentifier : Loadable<[ScoredMask], SPError>] = [:],
-        pointSemantics: [String: [PointSemantic]] = [:],
+        pointSemantics: [Int: [PointSemantic]] = [:],
         segmentedImage: [SegmentationIdentifier: UIImage] = [:],
         cutouts: [String: [Cutout]] = [:],
         isShowingDeletingSegmentationAlert: Bool = false
@@ -59,7 +59,7 @@ public struct SegmentationState: Equatable {
     public var model: SegmentationModel
 
     public var accessToken: String
-    public var fileName: String
+    public var imageProject: ImageProject
     public var image: UIImage
 
     public var isSegmenting: Bool {
@@ -73,29 +73,29 @@ public struct SegmentationState: Equatable {
 
     public var segID: SegmentationIdentifier {
         return SegmentationIdentifier(
-            fileName: fileName,
-            pointSemantics: model.pointSemantics[fileName] ?? []
+            imageID: imageProject.id,
+            pointSemantics: model.pointSemantics[imageProject.id] ?? []
         )
     }
 
     public var currentPointSemantics: [PointSemantic] {
         get {
-            model.pointSemantics[fileName] ?? []
+            model.pointSemantics[imageProject.id] ?? []
         }
         set {
-            model.pointSemantics[fileName] = newValue
+            model.pointSemantics[imageProject.id] = newValue
         }
     }
 
     public init(
         model: SegmentationModel,
         accessToken: String,
-        fileName: String,
+        imageProject: ImageProject,
         image: UIImage
     ) {
         self.model = model
         self.accessToken = accessToken
-        self.fileName = fileName
+        self.imageProject = imageProject
         self.image = image
     }
 
@@ -110,8 +110,8 @@ public struct SegmentationState: Equatable {
 }
 
 public enum SegmentationAction: Equatable {
-    case undoPointSemantic(fileName: String)
-    case addPointSemantic(PointSemantic, fileName: String)
+    case undoPointSemantic(imageID: Int)
+    case addPointSemantic(PointSemantic, imageID: Int)
     case discardSegmentedImage(SegmentationIdentifier)
     case dismissSegmentation
     case requestSegmentation(

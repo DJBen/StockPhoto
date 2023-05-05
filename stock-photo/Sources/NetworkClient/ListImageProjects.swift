@@ -1,5 +1,5 @@
 import Foundation
-import Home
+import StockPhotoFoundation
 
 public struct ListImageProjectsRequest: Equatable, Encodable {
     public let accessToken: String

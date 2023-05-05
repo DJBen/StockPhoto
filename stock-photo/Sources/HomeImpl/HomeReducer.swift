@@ -66,7 +66,7 @@ public struct Home<
                 }
 
                 for imageProject in imageProjects {
-                    if state.images[imageProject.fileName] == nil || state.images[imageProject.fileName] == .notLoaded {
+                    if state.images[imageProject.id] == nil || state.images[imageProject.id] == .notLoaded {
                         return .send(.fetchImage(imageProject, accessToken: accessToken))
                     }
                 }
@@ -83,7 +83,7 @@ public struct Home<
                         let imageLoadable = try await networkClient.fetchImage(
                             FetchImageRequest(
                                 accessToken: accessToken,
-                                fileName: imageProject.fileName
+                                imageID: imageProject.id
                             )
                         )
                         return .fetchedImage(
@@ -101,10 +101,10 @@ public struct Home<
                     }
                 )
             case .fetchedImage(let imageLoadable, let imageProject, let accessToken):
-                state.images[imageProject.fileName] = imageLoadable
+                state.images[imageProject.id] = imageLoadable
 
                 for imageProject in state.imageProjects.value ?? [] {
-                    if state.images[imageProject.fileName] == nil || state.images[imageProject.fileName] == .notLoaded {
+                    if state.images[imageProject.id] == nil || state.images[imageProject.id] == .notLoaded {
                         return .send(.fetchImage(imageProject, accessToken: accessToken))
                     }
                 }
@@ -135,7 +135,7 @@ public struct Home<
 extension HomeState {
     var segmentation: SegmentationState? {
         get {
-            guard let selectedImageProjectID = selectedImageProjectID, let image = images[selectedImageProjectID]?.value else {
+            guard let selectedImageProjectID = selectedImageProjectID, let image = images[selectedImageProjectID]?.value, let imageProject = imageProjects.value?.first(where: { $0.id ==  selectedImageProjectID }) else {
                 return nil
             }
             guard let accessToken = accessToken else {
@@ -144,7 +144,7 @@ extension HomeState {
             return SegmentationState(
                 model: segmentationModel,
                 accessToken: accessToken,
-                fileName: selectedImageProjectID,
+                imageProject: imageProject,
                 image: image
             )
         }

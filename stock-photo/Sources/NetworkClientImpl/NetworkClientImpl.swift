@@ -9,8 +9,8 @@ public final class NetworkClientImpl: Sendable {
     private static let authenticateGoogleEndpoint = "\(baseURL)/auth/google"
     private static let authenticateAppleEndpoint = "\(baseURL)/auth/apple"
     private static let listImageProjectsEndpoint = "\(baseURL)/images"
-    private static func fetchImageEndpoint(_ fileName: String) -> String {
-        return "\(baseURL)/image/\(fileName)"
+    private static func fetchImageEndpoint(_ imageID: Int) -> String {
+        return "\(baseURL)/image/\(imageID)"
     }
     private static let segmentEndpoint = "\(baseURL)/segment_image"
 
@@ -171,12 +171,12 @@ extension NetworkClientImpl: NetworkClient {
     }
 
     public func fetchImage(_ request: FetchImageRequest) async throws -> UIImage {
-        let cacheKey = "\(request.accessToken)_\(request.fileName)"
+        let cacheKey = "\(request.accessToken)_\(request.imageID)"
         if dataCache.containsData(for: cacheKey), let imageData = dataCache.cachedData(for: cacheKey) {
             return try imageDecoder.decode(imageData).image
         }
 
-        let urlComponents = URLComponents(string: NetworkClientImpl.fetchImageEndpoint(request.fileName))!
+        let urlComponents = URLComponents(string: NetworkClientImpl.fetchImageEndpoint(request.imageID))!
         let url = urlComponents.url!
 
         var urlRequest = URLRequest(url: url)

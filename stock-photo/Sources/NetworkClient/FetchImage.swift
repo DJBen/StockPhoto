@@ -3,13 +3,13 @@ import Home
 
 public struct FetchImageRequest: Equatable, Encodable {
     public let accessToken: String
-    public let fileName: String
+    public let imageID: Int
 
     public init(
         accessToken: String,
-        fileName: String
+        imageID: Int
     ) {
         self.accessToken = accessToken
-        self.fileName = fileName
+        self.imageID = imageID
     }
 }

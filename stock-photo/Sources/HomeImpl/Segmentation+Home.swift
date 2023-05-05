@@ -5,12 +5,12 @@ import UIKit
 
 extension SegmentationState {
     static func projectToHomeState(
-        fileName: String,
+        imageID: Int,
         imageLoadable: Loadable<UIImage, SPError>?,
         imageProjects: Loadable<[ImageProject], SPError>
     ) -> (_ homeState: HomeState) -> SegmentationState? {
         { homeState in
-            guard let imageProject = imageProjects.value?.first(where: { $0.fileName == fileName }) else {
+            guard let imageProject = imageProjects.value?.first(where: { $0.id == imageID }) else {
                 return nil
             }
             guard let accessToken = homeState.accessToken else {
@@ -22,7 +22,7 @@ extension SegmentationState {
             return SegmentationState(
                 model: homeState.segmentationModel,
                 accessToken: accessToken,
-                fileName: imageProject.fileName,
+                imageProject: imageProject,
                 image: image
             )
         }

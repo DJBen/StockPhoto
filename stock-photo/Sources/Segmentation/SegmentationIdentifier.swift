@@ -1,12 +1,12 @@
 public struct SegmentationIdentifier: Sendable, Equatable, Hashable {
-    public let fileName: String
+    public let imageID: Int
     public let pointSemantics: [PointSemantic]
 
     public init(
-        fileName: String,
+        imageID: Int,
         pointSemantics: [PointSemantic]
     ) {
-        self.fileName = fileName
+        self.imageID = imageID
         self.pointSemantics = pointSemantics
     } 
 }

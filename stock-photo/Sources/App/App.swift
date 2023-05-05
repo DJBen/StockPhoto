@@ -22,8 +22,8 @@ public struct StockPhoto: ReducerProtocol, Sendable {
         public var selectedPhotoPickerItem: PhotosPickerItem?
         public var transferredImage: Loadable<Image, SPError>
         public var imageProjects: Loadable<[ImageProject], SPError>
-        public var images: [String: Loadable<UIImage, SPError>]
-        public var selectedImageProjectID: String?
+        public var images: [Int: Loadable<UIImage, SPError>]
+        public var selectedImageProjectID: Int?
         public var segmentationModel: SegmentationModel
         public var displayingErrors: [SPError]
         

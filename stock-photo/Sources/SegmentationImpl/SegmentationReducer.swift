@@ -14,16 +14,16 @@ public struct Segmentation: ReducerProtocol, Sendable {
     public var body: some ReducerProtocol<SegmentationState, SegmentationAction> {
         Reduce { state, action in
             switch action {
-            case .undoPointSemantic(let fileName):
-                if let pointSemantics = state.pointSemantics[fileName], !pointSemantics.isEmpty {
-                    state.pointSemantics[fileName]?.removeLast()
+            case .undoPointSemantic(let imageID):
+                if let pointSemantics = state.pointSemantics[imageID], !pointSemantics.isEmpty {
+                    state.pointSemantics[imageID]?.removeLast()
                 }
                 return .none
-            case .addPointSemantic(let pointSemantic, let fileName):
-                if state.pointSemantics[fileName] == nil {
-                    state.pointSemantics[fileName] = []
+            case .addPointSemantic(let pointSemantic, let imageID):
+                if state.pointSemantics[imageID] == nil {
+                    state.pointSemantics[imageID] = []
                 }
-                state.pointSemantics[fileName]?.append(pointSemantic)
+                state.pointSemantics[imageID]?.append(pointSemantic)
                 return .none
             case .discardSegmentedImage(let segID):
                 state.segmentedImage[segID] = nil
@@ -43,7 +43,7 @@ public struct Segmentation: ReducerProtocol, Sendable {
                         let response = try await networkClient.segment(
                             SegmentRequest(
                                 accessToken: accessToken,
-                                fileName: segID.fileName,
+                                imageID: segID.imageID,
                                 pointSemantics: segID.pointSemantics
                             )
                         )

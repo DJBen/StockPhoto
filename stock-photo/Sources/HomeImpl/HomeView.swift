@@ -18,10 +18,10 @@ public struct HomeView<
         var selectedPhotosPickerItem: PhotosPickerItem?
         var transferredImage: Loadable<Image, SPError>
         var imageProjects: Loadable<[ImageProject], SPError>
-        var selectedImageProjectID: String?
+        var selectedImageProjectID: Int?
 
         struct ImageItem: Equatable {
-            let fileName: String
+            let imageID: Int
             let imageLoadable: Loadable<UIImage, SPError>
         }
 
@@ -36,8 +36,8 @@ public struct HomeView<
                 selectedImageProjectID: homeState.selectedImageProjectID,
                 imageItems: homeState.imageProjects.value?.map { imageProject in
                     ImageItem(
-                        fileName: imageProject.fileName,
-                        imageLoadable: homeState.images[imageProject.fileName] ?? .loading
+                        imageID: imageProject.id,
+                        imageLoadable: homeState.images[imageProject.id] ?? .loading
                     )
                 } ?? []
             )
@@ -75,9 +75,9 @@ public struct HomeView<
                             send: HomeAction.selectImageProjectID
                         )
                     ) {
-                        ForEach(viewStore.imageItems, id: \.fileName) { item in
+                        ForEach(viewStore.imageItems, id: \.imageID) { item in
                             NavigationLink(
-                                value: StockPhotoDestination.selectedImageProject(item.fileName)
+                                value: StockPhotoDestination.selectedImageProject(item.imageID)
                             ) {
                                 Group {
                                     if let image = item.imageLoadable.value {
@@ -166,12 +166,12 @@ public struct HomeView<
                 switch destination {
                 case .postImageCapture(_):
                     EmptyView()
-                case .selectedImageProject(let fileName):
+                case .selectedImageProject(let imageID):
                     IfLetStore(
                         store.scope(
                             state: SegmentationState.projectToHomeState(
-                                fileName: fileName,
-                                imageLoadable: viewStore.imageItems.first { $0.fileName == fileName }?.imageLoadable,
+                                imageID: imageID,
+                                imageLoadable: viewStore.imageItems.first { $0.imageID == imageID }?.imageLoadable,
                                 imageProjects: viewStore.imageProjects
                             ),
                             action: HomeAction.segmentation
