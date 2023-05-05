@@ -43,6 +43,9 @@ public struct Home<
                 state.transferredImage = transferredImage
                 return .none
             case .fetchImageProjects(let accessToken):
+                guard state.imageProjects.isLoading else {
+                    return .none
+                }
                 return .task(
                     operation: {
                         let imageProjects = try await networkClient.listImageProjects(
@@ -57,16 +60,13 @@ public struct Home<
                     }
                 )
             case .fetchedImageProjects(let imageProjects, let accessToken):
-                if let error = imageProjects.error {
-                    state.displayingErrors.append(error)
-                }
                 state.imageProjects = imageProjects
                 guard let imageProjects = imageProjects.value else {
                     return .none
                 }
 
                 for imageProject in imageProjects {
-                    if state.images[imageProject.imageFile] == nil || state.images[imageProject.imageFile] == .notLoaded {
+                    if state.images[imageProject.fileName] == nil || state.images[imageProject.fileName] == .notLoaded {
                         return .send(.fetchImage(imageProject, accessToken: accessToken))
                     }
                 }
@@ -83,7 +83,7 @@ public struct Home<
                         let imageLoadable = try await networkClient.fetchImage(
                             FetchImageRequest(
                                 accessToken: accessToken,
-                                fileName: imageProject.imageFile
+                                fileName: imageProject.fileName
                             )
                         )
                         return .fetchedImage(
@@ -101,14 +101,10 @@ public struct Home<
                     }
                 )
             case .fetchedImage(let imageLoadable, let imageProject, let accessToken):
-                if let error = imageLoadable.error {
-                    state.displayingErrors.append(error)
-                }
-
-                state.images[imageProject.imageFile] = imageLoadable
+                state.images[imageProject.fileName] = imageLoadable
 
                 for imageProject in state.imageProjects.value ?? [] {
-                    if state.images[imageProject.imageFile] == nil || state.images[imageProject.imageFile] == .notLoaded {
+                    if state.images[imageProject.fileName] == nil || state.images[imageProject.fileName] == .notLoaded {
                         return .send(.fetchImage(imageProject, accessToken: accessToken))
                     }
                 }
@@ -124,6 +120,9 @@ public struct Home<
                 default:
                     break
                 }
+                return .none
+            case .logout:
+                // Handled by the parent
                 return .none
             }
         }
@@ -146,8 +145,7 @@ extension HomeState {
                 model: segmentationModel,
                 accessToken: accessToken,
                 fileName: selectedImageProjectID,
-                image: image,
-                displayErrors: displayingErrors
+                image: image
             )
         }
 

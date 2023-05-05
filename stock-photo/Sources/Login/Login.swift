@@ -14,7 +14,8 @@ public struct Login: ReducerProtocol, Sendable {
     }
 
     public struct State: Equatable {
-        public var isShowingLoginSheet: Bool = true
+        /// Whether to show the login sheet. It shows after the app fails to obtain the access token.
+        public var isShowingLoginSheet: Bool = false
         public var accessToken: String?
         public var userID: String?
         /// Whether it is calling our backend service to authenticate.
@@ -32,10 +33,10 @@ public struct Login: ReducerProtocol, Sendable {
         case didObtainCredentialFromApple(ASAuthorizationAppleIDCredential)
         case didFailLogin(SPError)
         case didAuthenticate(accessToken: String, userID: String)
-
+        /// Remove existing saved access token and re-authenticate
+        case resetAccessToken
         /// The credential is not found in the keychain. Present login screen normally.
         case didNotFindAccessToken
-
         case setLoginSheetPresented(Bool)
     }
 
@@ -127,8 +128,15 @@ public struct Login: ReducerProtocol, Sendable {
                 state.userID = userID
                 state.isShowingLoginSheet = false
                 return .none
+            case .resetAccessToken:
+                state.accessToken = nil
+                return .task {
+                    keychain[accessTokenKey] = nil
+                    return .didNotFindAccessToken
+                }
             case .didNotFindAccessToken:
                 // No credentials find, present the login view normally
+                state.isShowingLoginSheet = true
                 return .none
             case .setLoginSheetPresented(let isPresented):
                 state.isShowingLoginSheet = isPresented

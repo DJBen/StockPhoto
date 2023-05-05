@@ -36,8 +36,8 @@ public struct HomeView<
                 selectedImageProjectID: homeState.selectedImageProjectID,
                 imageItems: homeState.imageProjects.value?.map { imageProject in
                     ImageItem(
-                        fileName: imageProject.imageFile,
-                        imageLoadable: homeState.images[imageProject.imageFile] ?? .loading
+                        fileName: imageProject.fileName,
+                        imageLoadable: homeState.images[imageProject.fileName] ?? .loading
                     )
                 } ?? []
             )
@@ -131,14 +131,36 @@ public struct HomeView<
                 }
             }
             .navigationTitle("Projects")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(
+                        action: {
+                            viewStore.send(.logout)
+                        }
+                    ) {
+                        Text(
+                            "Log out",
+                            comment: "The log out button on the home screen"
+                        )
+                        .tint(.red)
+                    }
+                }
+            }
+            .onAppear {
+                guard let accessToken = viewStore.accessToken else {
+                    return
+                }
+                viewStore.send(
+                    .fetchImageProjects(accessToken: accessToken)
+                )
+            }
             .onChange(of: viewStore.accessToken) { newAccessToken in
                 guard let newAccessToken = newAccessToken else {
                     return
                 }
-                guard viewStore.imageProjects.isLoading else {
-                    return
-                }
-                viewStore.send(.fetchImageProjects(accessToken: newAccessToken))
+                viewStore.send(
+                    .fetchImageProjects(accessToken: newAccessToken)
+                )
             }
             .navigationDestination(for: StockPhotoDestination.self) { destination in
                 switch destination {

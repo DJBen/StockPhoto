@@ -9,18 +9,17 @@ extension HomeState {
             imageProjects: appState.imageProjects,
             images: appState.images,
             selectedImageProjectID: appState.selectedImageProjectID,
-            segmentationModel: appState.segmentationModel,
-            displayingErrors: appState.displayingErrors
+            segmentationModel: appState.segmentationModel
         )
     }
 
     func apply(_ appState: inout StockPhoto.State) {
+        appState.login.accessToken = accessToken
         appState.selectedPhotoPickerItem = selectedPhotosPickerItem
         appState.transferredImage = transferredImage
         appState.imageProjects = imageProjects
         appState.images = images
         appState.selectedImageProjectID = selectedImageProjectID
         appState.segmentationModel = segmentationModel
-        appState.displayingErrors = displayingErrors
     }
 }

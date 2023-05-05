@@ -10,7 +10,7 @@ extension SegmentationState {
         imageProjects: Loadable<[ImageProject], SPError>
     ) -> (_ homeState: HomeState) -> SegmentationState? {
         { homeState in
-            guard let imageProject = imageProjects.value?.first(where: { $0.imageFile == fileName }) else {
+            guard let imageProject = imageProjects.value?.first(where: { $0.fileName == fileName }) else {
                 return nil
             }
             guard let accessToken = homeState.accessToken else {
@@ -22,9 +22,8 @@ extension SegmentationState {
             return SegmentationState(
                 model: homeState.segmentationModel,
                 accessToken: accessToken,
-                fileName: imageProject.imageFile,
-                image: image,
-                displayErrors: homeState.displayingErrors
+                fileName: imageProject.fileName,
+                image: image
             )
         }
     }

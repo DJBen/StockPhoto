@@ -81,6 +81,15 @@ public enum SPError: LocalizedError {
         }
         return .unknownError(error)
     }
+
+    public var isUnauthorizedError: Bool {
+        switch self {
+        case .httpError(let httpError):
+            return httpError == .unauthorized
+        default:
+            return false
+        }
+    }
 }
 
 extension SPError: Equatable {

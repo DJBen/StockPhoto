@@ -44,7 +44,8 @@ public struct AppView: View {
                         get: {
                             $0.login.isShowingLoginSheet
                         },
-                        send: { StockPhoto.Action.login(.setLoginSheetPresented($0))
+                        send: {
+                            StockPhoto.Action.login(.setLoginSheetPresented($0))
                         }
                     )
                 ) {
@@ -59,6 +60,11 @@ public struct AppView: View {
                     store.scope(state: \.alertState),
                     dismiss: .dismissError
                 )
+                .onAppear {
+                    // Check existing access token for auth;
+                    // present login screen if not exists
+                    viewStore.send(.login(.checkExistingAccessToken))
+                }
             }
         }
     }

@@ -101,11 +101,42 @@ public struct StockPhoto: ReducerProtocol, Sendable {
             }
 
             Reduce { state, action in
+                func handleLoadableError<T>(_ loadable: Loadable<T, SPError>) {
+                    if let error = loadable.error {
+                        state.displayingErrors.append(error)
+
+                        // If backend returns unauthorized, it is likely that the access token has expired. Clear and re-login.
+                        if error.isUnauthorizedError {
+                            state.login.accessToken = nil
+                            state.login.isShowingLoginSheet = true
+                        }
+                    }
+                }
+
                 switch action {
                 case .navigationChanged(let destinations):
                     state.destinations = destinations
                     return .none
                 case .home(let homeAction):
+                    switch homeAction {
+                    case .didCompleteTransferImage(let transferredImage):
+                        handleLoadableError(transferredImage)
+                    case .fetchedImage(let imageLoadable, imageProject: _, accessToken: _):
+                        handleLoadableError(imageLoadable)
+                    case .fetchedImageProjects(let imageProjects, accessToken: _):
+                        handleLoadableError(imageProjects)
+                    case .segmentation(let segmentationAction):
+                        switch segmentationAction {
+                        case .didCompleteSegmentation(let masksLoadable, segmentedImage: _, segID: _):
+                            handleLoadableError(masksLoadable)
+                        default:
+                            return .none
+                        }
+                    case .logout:
+                        return .send(.login(.resetAccessToken))
+                    default:
+                        return .none
+                    }
                     return .none
                 case .login(let loginAction):
                     switch loginAction {

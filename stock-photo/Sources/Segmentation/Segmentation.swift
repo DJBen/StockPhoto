@@ -61,7 +61,6 @@ public struct SegmentationState: Equatable {
     public var accessToken: String
     public var fileName: String
     public var image: UIImage
-    public var displayErrors: [SPError]
 
     public var isSegmenting: Bool {
         switch model.segmentationResult[segID] {
@@ -92,14 +91,12 @@ public struct SegmentationState: Equatable {
         model: SegmentationModel,
         accessToken: String,
         fileName: String,
-        image: UIImage,
-        displayErrors: [SPError]
+        image: UIImage
     ) {
         self.model = model
         self.accessToken = accessToken
         self.fileName = fileName
         self.image = image
-        self.displayErrors = displayErrors
     }
 
     public subscript<Value>(dynamicMember keyPath: WritableKeyPath<SegmentationModel, Value>) -> Value {
