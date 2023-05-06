@@ -30,6 +30,6 @@ public struct SegmentRequest: Equatable, Encodable {
 }
 
 public struct SegmentResponse: Equatable, Decodable {
-    public let masks: [Mask]
-    public let scores: [Float]
+    public let id: Int
+    public let mask: Mask
 }

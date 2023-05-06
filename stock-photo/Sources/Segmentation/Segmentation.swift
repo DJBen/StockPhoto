@@ -9,7 +9,7 @@ public struct SegmentationModel: Equatable {
     /// The segment masks generated from the request identified by `SegmentationIdentifier`.
     ///
     /// Multiple masks may be generated from the same image, if their point semantics are different.
-    public var segmentationResult: [SegmentationIdentifier: Loadable<[ScoredMask], SPError>]
+    public var segmentationResults: [SegmentationIdentifier: Loadable<SegmentationResult, SPError>]
 
     /// The current on-screen point semantics.
     public var pointSemantics: [Int: [PointSemantic]]
@@ -37,13 +37,13 @@ public struct SegmentationModel: Equatable {
     public var cutouts: [String: [Cutout]]
 
     public init(
-        segmentationResult: [SegmentationIdentifier : Loadable<[ScoredMask], SPError>] = [:],
+        segmentationResults: [SegmentationIdentifier: Loadable<SegmentationResult, SPError>] = [:],
         pointSemantics: [Int: [PointSemantic]] = [:],
         segmentedImage: [SegmentationIdentifier: UIImage] = [:],
         cutouts: [String: [Cutout]] = [:],
         isShowingDeletingSegmentationAlert: Bool = false
     ) {
-        self.segmentationResult = segmentationResult
+        self.segmentationResults = segmentationResults
         self.pointSemantics = pointSemantics
         self.segmentedImage = segmentedImage
         self.cutouts = cutouts
@@ -58,12 +58,12 @@ public struct SegmentationModel: Equatable {
 public struct SegmentationState: Equatable {
     public var model: SegmentationModel
 
-    public var accessToken: String
+    public var accessToken: String?
     public var imageProject: ImageProject
     public var image: UIImage
 
     public var isSegmenting: Bool {
-        switch model.segmentationResult[segID] {
+        switch model.segmentationResults[segID] {
         case .loading:
             return true
         default:
@@ -89,7 +89,7 @@ public struct SegmentationState: Equatable {
 
     public init(
         model: SegmentationModel,
-        accessToken: String,
+        accessToken: String?,
         imageProject: ImageProject,
         image: UIImage
     ) {
@@ -120,7 +120,7 @@ public enum SegmentationAction: Equatable {
         sourceImage: UIImage
     )
     case didCompleteSegmentation(
-        Loadable<[ScoredMask], SPError>,
+        Loadable<SegmentationResult, SPError>,
         segmentedImage: UIImage?,
         segID: SegmentationIdentifier
     )

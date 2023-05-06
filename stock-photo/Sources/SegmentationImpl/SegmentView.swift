@@ -50,7 +50,8 @@ public struct SegmentationView: View {
                             }
                         } else {
                             ForegroundOverlay(
-                                pointSemantics: viewStore.currentPointSemantics
+                                pointSemantics: viewStore.currentPointSemantics,
+                                radius: min(viewStore.image.size.width, viewStore.image.size.height) / 100
                             )
                             .foregroundColor(.green)
                         }
@@ -147,7 +148,7 @@ public struct SegmentationView: View {
                     viewStore.send(
                         .requestSegmentation(
                             viewStore.segID,
-                            accessToken: viewStore.accessToken,
+                            accessToken: viewStore.accessToken ?? "invalid",
                             sourceImage: viewStore.image
                         )
                     )
@@ -188,6 +189,7 @@ public struct SegmentationView: View {
 
 struct ForegroundOverlay: Shape {
     var pointSemantics: [PointSemantic]
+    var radius: CGFloat = 12.0
 
     func path(in rect: CGRect) -> Path {
         var path = Path()
@@ -195,8 +197,7 @@ struct ForegroundOverlay: Shape {
         for pointSemantic in pointSemantics {
             let x = CGFloat(pointSemantic.point.x)
             let y = CGFloat(pointSemantic.point.y)
-            let circleRadius: CGFloat = 12.0
-            let circleRect = CGRect(x: x - circleRadius, y: y - circleRadius, width: circleRadius * 2, height: circleRadius * 2)
+            let circleRect = CGRect(x: x - radius, y: y - radius, width: radius * 2, height: radius * 2)
             path.addEllipse(in: circleRect)
         }
 

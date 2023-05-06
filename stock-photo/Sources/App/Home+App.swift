@@ -14,7 +14,6 @@ extension HomeState {
     }
 
     func apply(_ appState: inout StockPhoto.State) {
-        appState.login.accessToken = accessToken
         appState.selectedPhotoPickerItem = selectedPhotosPickerItem
         appState.transferredImage = transferredImage
         appState.imageProjects = imageProjects

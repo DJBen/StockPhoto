@@ -16,8 +16,6 @@ let package = Package(
         .library(name: "HomeImpl", targets: ["HomeImpl"]),
         .library(name: "ImageCapture", targets: ["ImageCapture"]),
         .library(name: "ImageCaptureImpl", targets: ["ImageCaptureImpl"]),
-        .library(name: "ImageSegmentationClient", targets: ["ImageSegmentationClient"]),
-        .library(name: "ImageSegmentationClientImpl", targets: ["ImageSegmentationClientImpl"]),
         .library(name: "ImageViewer", targets: ["ImageViewer"]),
         .library(name: "NetworkClient", targets: ["NetworkClient"]),
         .library(name: "NetworkClientImpl", targets: ["NetworkClientImpl"]),
@@ -67,7 +65,6 @@ let package = Package(
                 "Login",
                 "Home",
                 "HomeImpl",
-                "ImageSegmentationClient",
                 "ImageCapture",
                 "ImageCaptureImpl",
                 "Navigation",
@@ -118,25 +115,11 @@ let package = Package(
                 .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
                 "DeviceExtension",
                 "ImageCapture",
-                "ImageSegmentationClient",
                 "ImageViewer",
                 "Navigation",
             ],
             resources: [
                 .process("Resources"),
-            ]
-        ),
-        .target(
-            name: "ImageSegmentationClient",
-            dependencies: [
-                .product(name: "Dependencies", package: "swift-dependencies")
-            ]
-        ),
-        .target(
-            name: "ImageSegmentationClientImpl",
-            dependencies: [
-                "ImageSegmentationClient",
-                "CoreMLHelpers",
             ]
         ),
         .target(
@@ -167,17 +150,6 @@ let package = Package(
                 "NetworkClient",
                 .product(name: "Nuke", package: "Nuke"),
                 "StockPhotoFoundation",
-            ]
-        ),
-        .testTarget(
-            name: "ImageSegmentationClientImplTests",
-            dependencies: [
-                "ImageSegmentationClientImpl",
-                .product(name: "SnapshotTesting", package: "swift-snapshot-testing")
-            ],
-            sources: ["Sources"],
-            resources: [
-                .process("Resources"),
             ]
         ),
         .target(

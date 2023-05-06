@@ -18,6 +18,7 @@ public struct StockPhoto: ReducerProtocol, Sendable {
     public struct State: Equatable {
         public var destinations: [StockPhotoDestination]
         public var login: Login.State
+        public var debugModel: DebugModel
         public var imageCapture: ImageCaptureState
         public var selectedPhotoPickerItem: PhotosPickerItem?
         public var transferredImage: Loadable<Image, SPError>
@@ -36,9 +37,19 @@ public struct StockPhoto: ReducerProtocol, Sendable {
             }
         }
 
+        public var debug: DebugState {
+            get {
+                DebugState.project(self)
+            }
+            set {
+                newValue.apply(&self)
+            }
+        }
+
         public init() {
             self.destinations = []
             self.login = Login.State()
+            self.debugModel = DebugModel()
             self.imageCapture = ImageCaptureState()
             self.selectedPhotoPickerItem = nil
             self.transferredImage = .notLoaded
@@ -70,6 +81,7 @@ public struct StockPhoto: ReducerProtocol, Sendable {
         case home(HomeAction)
         case login(Login.Action)
         case imageCapture(ImageCaptureAction)
+        case debug(DebugAction)
         case dismissError
     }
 
@@ -100,17 +112,22 @@ public struct StockPhoto: ReducerProtocol, Sendable {
                 )
             }
 
-            Reduce { state, action in
-                func handleLoadableError<T>(_ loadable: Loadable<T, SPError>) {
-                    if let error = loadable.error {
-                        state.displayingErrors.append(error)
+            Scope(state: \.debug, action: /Action.debug) {
+                Debug()
+            }
 
+            Reduce { state, action in
+                func handleLoadableError<T>(_ loadable: Loadable<T, SPError>) -> EffectPublisher<StockPhoto.Action, Never> {
+                    if let error = loadable.error {
                         // If backend returns unauthorized, it is likely that the access token has expired. Clear and re-login.
                         if error.isUnauthorizedError {
-                            state.login.accessToken = nil
                             state.login.isShowingLoginSheet = true
+                            return .send(.login(.resetAccessToken))
+                        } else {
+                            state.displayingErrors.append(error)
                         }
                     }
+                    return .none
                 }
 
                 switch action {
@@ -120,15 +137,15 @@ public struct StockPhoto: ReducerProtocol, Sendable {
                 case .home(let homeAction):
                     switch homeAction {
                     case .didCompleteTransferImage(let transferredImage):
-                        handleLoadableError(transferredImage)
+                        return handleLoadableError(transferredImage)
                     case .fetchedImage(let imageLoadable, imageProject: _, accessToken: _):
-                        handleLoadableError(imageLoadable)
+                        return handleLoadableError(imageLoadable)
                     case .fetchedImageProjects(let imageProjects, accessToken: _):
-                        handleLoadableError(imageProjects)
+                        return handleLoadableError(imageProjects)
                     case .segmentation(let segmentationAction):
                         switch segmentationAction {
                         case .didCompleteSegmentation(let masksLoadable, segmentedImage: _, segID: _):
-                            handleLoadableError(masksLoadable)
+                            return handleLoadableError(masksLoadable)
                         default:
                             return .none
                         }
@@ -137,14 +154,7 @@ public struct StockPhoto: ReducerProtocol, Sendable {
                     default:
                         return .none
                     }
-                    return .none
                 case .login(let loginAction):
-                    switch loginAction {
-                    case .didAuthenticate(accessToken: let accessToken, userID: _):
-                        state.imageCapture.accessToken = accessToken
-                    default:
-                        break
-                    }
                     return .none
                 case .imageCapture(let imageCaptureAction):
                     switch imageCaptureAction {
@@ -154,6 +164,14 @@ public struct StockPhoto: ReducerProtocol, Sendable {
                         state.destinations.removeLast()
                     default:
                         break
+                    }
+                    return .none
+                case .debug(let debugAction):
+                    switch debugAction {
+                    case .setPresentDebugSheet(let isPresenting):
+                        state.debug.isPresentingDebugSheet = isPresenting
+                    case .wreckAccessToken:
+                        return .send(.login(.wreckAccessToken))
                     }
                     return .none
                 case .dismissError:

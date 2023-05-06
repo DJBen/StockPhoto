@@ -201,7 +201,7 @@ public struct HomeView<
 //                    imageProjects: .notLoaded,
 //                    images: [:],
 //                    selectedImageProject: nil,
-//                    segmentationResult: [:]
+//                    segmentationResults: [:]
 //                ),
 //                reducer: MockSegmentationReducer()
 //            )

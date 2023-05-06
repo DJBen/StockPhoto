@@ -22,13 +22,13 @@ public struct Login: ReducerProtocol, Sendable {
         ///
         /// Signin buttons should be disabled, until either successful or failed result returns.
         public var isAuthenticating: Bool = false
-        public var displayingErrors: [SPError] = []
 
         public init() {}
     }
 
     public enum Action: Equatable {
         case checkExistingAccessToken
+        case wreckAccessToken
         case didObtainCredentialFromGoogle(GoogleCredentials)
         case didObtainCredentialFromApple(ASAuthorizationAppleIDCredential)
         case didFailLogin(SPError)
@@ -70,8 +70,21 @@ public struct Login: ReducerProtocol, Sendable {
                         return .didNotFindAccessToken
                     }
                 }
-            case .didFailLogin(let error):
-                state.displayingErrors.append(error)
+            case .wreckAccessToken:
+                if let accessToken = state.accessToken {
+                    if let dotRange = accessToken.range(of: ".", options: .backwards) {
+                        let firstPart = accessToken[..<dotRange.lowerBound]
+                        let invalidSignature = "invalid_signature"
+                        let invalidJwtToken = firstPart + "." + invalidSignature
+                        state.accessToken = invalidJwtToken
+                        return .fireAndForget {
+                            keychain[accessTokenKey] = invalidJwtToken
+                        }
+                    }
+                }
+                return .none
+            case .didFailLogin(_):
+                // Handled by the parent
                 return .none
             case .didObtainCredentialFromGoogle(let credentials):
                 return .task(

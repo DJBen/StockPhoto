@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		EF751D1429F4ACA400967E1D /* App in Frameworks */ = {isa = PBXBuildFile; productRef = EF751D1329F4ACA400967E1D /* App */; };
 		EF751D1629F5164E00967E1D /* NetworkClientImpl in Frameworks */ = {isa = PBXBuildFile; productRef = EF751D1529F5164E00967E1D /* NetworkClientImpl */; };
-		EF9D2015297E2BFE0064F061 /* ImageSegmentationClientImpl in Frameworks */ = {isa = PBXBuildFile; productRef = EF9D2014297E2BFE0064F061 /* ImageSegmentationClientImpl */; };
 		EFB17D662944831200AC956F /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFB17D652944831200AC956F /* RootView.swift */; };
 		EFB17D682944831300AC956F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EFB17D672944831300AC956F /* Assets.xcassets */; };
 		EFB17D6B2944831300AC956F /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EFB17D6A2944831300AC956F /* Preview Assets.xcassets */; };
@@ -36,7 +35,6 @@
 			files = (
 				EF751D1429F4ACA400967E1D /* App in Frameworks */,
 				EF751D1629F5164E00967E1D /* NetworkClientImpl in Frameworks */,
-				EF9D2015297E2BFE0064F061 /* ImageSegmentationClientImpl in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -107,7 +105,6 @@
 			);
 			name = StockPhoto;
 			packageProductDependencies = (
-				EF9D2014297E2BFE0064F061 /* ImageSegmentationClientImpl */,
 				EF751D1329F4ACA400967E1D /* App */,
 				EF751D1529F5164E00967E1D /* NetworkClientImpl */,
 			);
@@ -387,10 +384,6 @@
 		EF751D1529F5164E00967E1D /* NetworkClientImpl */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = NetworkClientImpl;
-		};
-		EF9D2014297E2BFE0064F061 /* ImageSegmentationClientImpl */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = ImageSegmentationClientImpl;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

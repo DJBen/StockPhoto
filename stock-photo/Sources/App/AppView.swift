@@ -39,6 +39,10 @@ public struct AppView: View {
                     ),
                     segmentViewBuilder: SegmentationView.init
                 )
+                .alert(
+                    store.scope(state: \.alertState),
+                    dismiss: .dismissError
+                )
                 .fullScreenCover(
                     isPresented: viewStore.binding(
                         get: {
@@ -56,10 +60,21 @@ public struct AppView: View {
                         )
                     )
                 }
-                .alert(
-                    store.scope(state: \.alertState),
-                    dismiss: .dismissError
-                )
+                #if DEBUG
+                .onReceive(NotificationCenter.default.publisher(for: .deviceDidShakeNotification)) { _ in
+                    viewStore.send(.debug(.setPresentDebugSheet(true)))
+                }
+                .sheet(
+                    isPresented: viewStore.binding(
+                        get: \.debug.isPresentingDebugSheet,
+                        send: {
+                            StockPhoto.Action.debug(.setPresentDebugSheet($0))
+                        }
+                    )
+                ) {
+                    DebugView(store: store.scope(state: \.debug, action: StockPhoto.Action.debug))
+                }
+                #endif
                 .onAppear {
                     // Check existing access token for auth;
                     // present login screen if not exists

@@ -6,6 +6,7 @@ import UIKit
 
 public final class NetworkClientImpl: Sendable {
     private static let baseURL = "https://djben--sam-fastapi-app-dev.modal.run"
+//    private static let baseURL = "https://djben--sam-fastapi-app.modal.run"
     private static let authenticateGoogleEndpoint = "\(baseURL)/auth/google"
     private static let authenticateAppleEndpoint = "\(baseURL)/auth/apple"
     private static let listImageProjectsEndpoint = "\(baseURL)/images"
@@ -140,7 +141,7 @@ extension NetworkClientImpl: NetworkClient {
                 while !progress.isFinished && !progress.isCancelled {
                     let update = UploadFileUpdate.inProgress(bytesSent: progress.completedUnitCount, totalBytesSent: progress.completedUnitCount, totalBytesExpectedToSend: progress.totalUnitCount)
                     continuation.yield(update)
-                    Thread.sleep(forTimeInterval: 0.5)
+                    Thread.sleep(forTimeInterval: 0.1)
                 }
             }
 
@@ -229,15 +230,9 @@ extension NetworkClientImpl: NetworkClient {
 
         // Add image
         body.append(string: boundaryPrefix)
-        body.append(string: "Content-Disposition: form-data; name=\"image\"; filename=\"\(request.fileName)\"\r\n")
-        body.append(string: "Content-Type: image/jpeg\r\n\r\n")
+        body.append(string: "Content-Disposition: form-data; name=\"image\"\r\n")
+        body.append(string: "Content-Type: \(request.mimeType)\r\n\r\n")
         body.append(request.image)
-        body.append(string: "\r\n")
-
-        // Add file name
-        body.append(string: boundaryPrefix)
-        body.append(string: "Content-Disposition: form-data; name=\"file_name\"\r\n\r\n")
-        body.append(string: request.fileName)
         body.append(string: "\r\n")
 
         // Add overwrite

@@ -37,7 +37,6 @@ public struct ImageCaptureView: View {
                         store: store.scope(
                             state: { state in
                                 PostImageCapture.State(
-                                    accessToken: state.accessToken,
                                     capturedImage: capturedImage,
                                     buttonText: .retake
                                 )

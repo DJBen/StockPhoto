@@ -39,12 +39,8 @@ public enum SPError: LocalizedError {
                 value: "We can't load your image",
                 comment: "Happens when we loading from image gallery yield empty result"
             )
-        case .unknownError:
-            return NSLocalizedString(
-                "SPError.emptyTransferredImage.unknownError",
-                value: "An unknown error occurred",
-                comment: "An unknown error"
-            )
+        case .unknownError(let error):
+            return error.localizedDescription
         }
     }
 
@@ -64,7 +60,10 @@ public enum SPError: LocalizedError {
                 value: "Please select your image again",
                 comment: "Happens when we fail to parse the downloaded image data"
             )
-        case .unknownError:
+        case .unknownError(let error):
+            if let localizedError = error as? LocalizedError {
+                return localizedError.recoverySuggestion
+            }
             return NSLocalizedString(
                 "SPError.unknownError.unknownError",
                 value: "Please try again",

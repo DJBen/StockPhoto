@@ -7,7 +7,6 @@
 
 import App
 import ComposableArchitecture
-import ImageSegmentationClientImpl
 import NetworkClientImpl
 import Nuke
 import SwiftUI

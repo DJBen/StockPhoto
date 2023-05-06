@@ -3,11 +3,8 @@ import UIKit
 import ComposableArchitecture
 import Dispatch
 import ImageCapture
-import ImageSegmentationClient
 
 public struct ImageCapture: ReducerProtocol, Sendable {
-    @Dependency(\.imageSegmentationClient) var imageSegmentationClient
-
     public init() {}
 
     public var body: some ReducerProtocol<ImageCaptureState, ImageCaptureAction> {

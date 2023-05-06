@@ -3,27 +3,27 @@ import Foundation
 public struct UploadImageRequest: Codable {
     public let accessToken: String
     public let image: Data
-    public let fileName: String
+    public let mimeType: String
     public let overwrite: Bool
 
     public init(
         accessToken: String,
         image: Data,
-        fileName: String,
+        mimeType: String,
         overwrite: Bool
     ) {
         self.accessToken = accessToken
         self.image = image
-        self.fileName = fileName
+        self.mimeType = mimeType
         self.overwrite = overwrite
     }
 }
 
 public struct UploadImageResponse: Equatable, Codable, Sendable {
-    public let fileName: String
+    public let imageID: Int
 
-    public init(fileName: String) {
-        self.fileName = fileName
+    public init(imageID: Int) {
+        self.imageID = imageID
     }
 }
 

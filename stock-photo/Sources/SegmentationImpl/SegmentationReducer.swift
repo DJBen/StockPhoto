@@ -36,7 +36,7 @@ public struct Segmentation: ReducerProtocol, Sendable {
                 let accessToken,
                 let sourceImage
             ):
-                state.segmentationResult[segID] = .loading
+                state.segmentationResults[segID] = .loading
 
                 return .task(
                     operation: {
@@ -47,18 +47,15 @@ public struct Segmentation: ReducerProtocol, Sendable {
                                 pointSemantics: segID.pointSemantics
                             )
                         )
-                        let scoredMasks = zip(response.masks, response.scores).map {
-                            ScoredMask(mask: $0, score: $1)
-                        }
-                        let segmentedImage = scoredMasks.max(
+                        let segmentationResult = SegmentationResult(
+                            id: response.id,
+                            mask: response.mask
                         )
-                        .flatMap { mask in
-                            sourceImage.croppedImage(
-                                using: mask.counts
-                            )
-                        }
+                        let segmentedImage = sourceImage.croppedImage(
+                            using: segmentationResult.mask.counts
+                        )
                         return .didCompleteSegmentation(
-                            .loaded(scoredMasks),
+                            .loaded(segmentationResult),
                             segmentedImage: segmentedImage,
                             segID: segID
                         )
@@ -73,7 +70,7 @@ public struct Segmentation: ReducerProtocol, Sendable {
                 )
                 .cancellable(id: segID)
             case .didCompleteSegmentation(let masksLoadable, let segmentedImage, let segID):
-                state.segmentationResult[segID] = masksLoadable
+                state.segmentationResults[segID] = masksLoadable
                 state.segmentedImage[segID] = segmentedImage
                 return .none
             case .setIsShowingDeletingSegmentationAlert(let isShowing):
