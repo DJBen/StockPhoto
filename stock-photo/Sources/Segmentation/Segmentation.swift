@@ -14,39 +14,23 @@ public struct SegmentationModel: Equatable {
     /// The current on-screen point semantics.
     public var pointSemantics: [Int: [PointSemantic]]
 
-    public var segmentedImage: [SegmentationIdentifier: UIImage] = [:]
+    public var segmentedImage: [SegmentationIdentifier: UIImage]
+
+    public var segmentationResultConfirmations: [SegmentationIdentifier: Loadable<Int, SPError>]
 
     public var isShowingDeletingSegmentationAlert: Bool
-
-    public struct Cutout: Equatable {
-        public let segmentationIdentifier: SegmentationIdentifier
-        public let mask: Mask
-        public let croppedImage: UIImage
-
-        public init(
-            segmentationIdentifier: SegmentationIdentifier,
-            mask: Mask,
-            croppedImage: UIImage
-        ) {
-            self.segmentationIdentifier = segmentationIdentifier
-            self.mask = mask
-            self.croppedImage = croppedImage
-        }
-    }
-
-    public var cutouts: [String: [Cutout]]
 
     public init(
         segmentationResults: [SegmentationIdentifier: Loadable<SegmentationResult, SPError>] = [:],
         pointSemantics: [Int: [PointSemantic]] = [:],
         segmentedImage: [SegmentationIdentifier: UIImage] = [:],
-        cutouts: [String: [Cutout]] = [:],
+        segmentationResultConfirmations: [SegmentationIdentifier: Loadable<Int, SPError>] = [:],
         isShowingDeletingSegmentationAlert: Bool = false
     ) {
         self.segmentationResults = segmentationResults
         self.pointSemantics = pointSemantics
         self.segmentedImage = segmentedImage
-        self.cutouts = cutouts
+        self.segmentationResultConfirmations = segmentationResultConfirmations
         self.isShowingDeletingSegmentationAlert = isShowingDeletingSegmentationAlert
     }
 }
@@ -64,6 +48,15 @@ public struct SegmentationState: Equatable {
 
     public var isSegmenting: Bool {
         switch model.segmentationResults[segID] {
+        case .loading:
+            return true
+        default:
+            return false
+        }
+    }
+
+    public var isConfirmingSegmentation: Bool {
+        switch model.segmentationResultConfirmations[segID] {
         case .loading:
             return true
         default:
@@ -113,7 +106,6 @@ public enum SegmentationAction: Equatable {
     case undoPointSemantic(imageID: Int)
     case addPointSemantic(PointSemantic, imageID: Int)
     case discardSegmentedImage(SegmentationIdentifier)
-    case dismissSegmentation
     case requestSegmentation(
         SegmentationIdentifier,
         accessToken: String,
@@ -125,4 +117,13 @@ public enum SegmentationAction: Equatable {
         segID: SegmentationIdentifier
     )
     case setIsShowingDeletingSegmentationAlert(Bool)
+    case confirmSegmentationResult(
+        SegmentationResult,
+        segID: SegmentationIdentifier,
+        accessToken: String
+    )
+    case confirmedSegmentationResult(
+        Loadable<Int, SPError>,
+        segID: SegmentationIdentifier
+    )
 }

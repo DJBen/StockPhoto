@@ -7,4 +7,5 @@ public protocol NetworkClient: Sendable {
     func listImageProjects(_ request: ListImageProjectsRequest) async throws -> ListImageProjectsResponse
     func fetchImage(_ request: FetchImageRequest) async throws -> UIImage
     func segment(_ request: SegmentRequest) async throws -> SegmentResponse
+    func confirmMask(_ request: ConfirmMaskRequest) async throws -> ConfirmMaskResponse
 }

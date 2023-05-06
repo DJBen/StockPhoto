@@ -114,12 +114,6 @@ public struct Home<
                 state.selectedImageProjectID = imageProjectID
                 return .none
             case .segmentation(let segmentationAction):
-                switch segmentationAction {
-                case .dismissSegmentation:
-                    state.selectedImageProjectID = nil
-                default:
-                    break
-                }
                 return .none
             case .logout:
                 // Handled by the parent

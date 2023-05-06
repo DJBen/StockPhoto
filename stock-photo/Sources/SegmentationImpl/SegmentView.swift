@@ -74,9 +74,6 @@ public struct SegmentationView: View {
                     TranslucentFullScreenCover(
                     )
                 }
-                .onDisappear {
-                    viewStore.send(.dismissSegmentation)
-                }
                 .alert(
                     isPresented: viewStore.binding(
                         get: \.isShowingDeletingSegmentationAlert,
@@ -110,7 +107,7 @@ public struct SegmentationView: View {
     @ToolbarContentBuilder private func toolbarContent(
         _ viewStore: ViewStoreOf<Segmentation>
     ) -> some ToolbarContent {
-        if let segmentedImage = viewStore.segmentedImage[viewStore.segID] {
+        if let segmentationResult = viewStore.segmentationResults[viewStore.segID]?.value {
             ToolbarItemGroup(
                 placement: .bottomBar
             ) {
@@ -128,6 +125,30 @@ public struct SegmentationView: View {
                 .disabled(viewStore.currentPointSemantics.isEmpty)
 
                 Spacer()
+
+                Button(action: {
+                    viewStore.send(
+                        .confirmSegmentationResult(
+                            segmentationResult,
+                            segID: viewStore.segID,
+                            accessToken: viewStore.accessToken ?? "invalid"
+                        )
+                    )
+                }) {
+                    HStack(spacing: 8) {
+                        if viewStore.isConfirmingSegmentation {
+                            ProgressView()
+                        }
+
+                        Text(
+                            "Proceed"
+                        )
+                        .fontWeight(.semibold)
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.green)
+                .disabled(viewStore.isConfirmingSegmentation)
             }
         } else {
             ToolbarItemGroup(

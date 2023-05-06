@@ -28,9 +28,6 @@ public struct Segmentation: ReducerProtocol, Sendable {
             case .discardSegmentedImage(let segID):
                 state.segmentedImage[segID] = nil
                 return .none
-            case .dismissSegmentation:
-                // Handled by the parent
-                return .none
             case .requestSegmentation(
                 let segID,
                 let accessToken,
@@ -75,6 +72,32 @@ public struct Segmentation: ReducerProtocol, Sendable {
                 return .none
             case .setIsShowingDeletingSegmentationAlert(let isShowing):
                 state.isShowingDeletingSegmentationAlert = isShowing
+                return .none
+            case .confirmSegmentationResult(let segmentationResult, segID: let segID, accessToken: let accessToken):
+                state.segmentationResultConfirmations[segID] = .loading
+                return .task(
+                    operation: {
+                        let response = try await networkClient.confirmMask(
+                            ConfirmMaskRequest(
+                                accessToken: accessToken,
+                                imageID: segID.imageID,
+                                maskID: segmentationResult.id
+                            )
+                        )
+                        return .confirmedSegmentationResult(
+                            .loaded(response.imageID),
+                            segID: segID
+                        )
+                    },
+                    catch: { error in
+                        return .confirmedSegmentationResult(
+                            .failed(SPError.catch(error)),
+                            segID: segID
+                        )
+                    }
+                )
+            case .confirmedSegmentationResult(let result, segID: let segID):
+                state.segmentationResultConfirmations[segID] = result
                 return .none
             }
         }

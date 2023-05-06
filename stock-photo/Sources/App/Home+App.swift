@@ -8,7 +8,17 @@ extension HomeState {
             transferredImage: appState.transferredImage,
             imageProjects: appState.imageProjects,
             images: appState.images,
-            selectedImageProjectID: appState.selectedImageProjectID,
+            selectedImageProjectID: {
+                for destination in appState.destinations {
+                    switch destination {
+                    case .selectedImageProject(let imageProjectID):
+                        return imageProjectID
+                    default:
+                        break
+                    }
+                }
+                return nil
+            }(),
             segmentationModel: appState.segmentationModel
         )
     }
@@ -18,7 +28,6 @@ extension HomeState {
         appState.transferredImage = transferredImage
         appState.imageProjects = imageProjects
         appState.images = images
-        appState.selectedImageProjectID = selectedImageProjectID
         appState.segmentationModel = segmentationModel
     }
 }

@@ -14,6 +14,7 @@ public final class NetworkClientImpl: Sendable {
         return "\(baseURL)/image/\(imageID)"
     }
     private static let segmentEndpoint = "\(baseURL)/segment_image"
+    private static let confirmMaskEndpoint = "\(baseURL)/confirm_mask"
 
     let dataCache: DataCaching
     let imageEncoder: ImageEncoders.Default = .init()
@@ -221,6 +222,28 @@ extension NetworkClientImpl: NetworkClient {
 
         let decoder = JSONDecoder()
         return try decoder.decode(SegmentResponse.self, from: data)
+    }
+
+    public func confirmMask(_ request: ConfirmMaskRequest) async throws -> ConfirmMaskResponse {
+        let urlComponents = URLComponents(string: NetworkClientImpl.confirmMaskEndpoint)!
+        let url = urlComponents.url!
+
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = "POST"
+        urlRequest.setValue("Bearer \(request.accessToken)", forHTTPHeaderField: "Authorization")
+        urlRequest.addValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let jsonEncoder = JSONEncoder()
+        urlRequest.httpBody = try jsonEncoder.encode(request)
+
+        let (data, response) = try await URLSession.shared.data(for: urlRequest)
+
+        if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
+            try NetworkClientImpl.handleHTTPError(statusCode: httpResponse.statusCode)
+        }
+
+        let decoder = JSONDecoder()
+        return try decoder.decode(ConfirmMaskResponse.self, from: data)
     }
 
     private static func createMultipartData(for request: UploadImageRequest, boundary: String) -> Data {
