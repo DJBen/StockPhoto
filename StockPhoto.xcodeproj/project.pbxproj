@@ -7,24 +7,25 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		EF9D2015297E2BFE0064F061 /* ImageSegmentationClientImpl in Frameworks */ = {isa = PBXBuildFile; productRef = EF9D2014297E2BFE0064F061 /* ImageSegmentationClientImpl */; };
-		EFACEDAA294489AA00DDD16E /* AppCore in Frameworks */ = {isa = PBXBuildFile; productRef = EFACEDA9294489AA00DDD16E /* AppCore */; };
-		EFB17D642944831200AC956F /* StockPhotoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFB17D632944831200AC956F /* StockPhotoApp.swift */; };
+		EF751D1429F4ACA400967E1D /* App in Frameworks */ = {isa = PBXBuildFile; productRef = EF751D1329F4ACA400967E1D /* App */; };
+		EF751D1629F5164E00967E1D /* NetworkClientImpl in Frameworks */ = {isa = PBXBuildFile; productRef = EF751D1529F5164E00967E1D /* NetworkClientImpl */; };
 		EFB17D662944831200AC956F /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFB17D652944831200AC956F /* RootView.swift */; };
 		EFB17D682944831300AC956F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EFB17D672944831300AC956F /* Assets.xcassets */; };
 		EFB17D6B2944831300AC956F /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EFB17D6A2944831300AC956F /* Preview Assets.xcassets */; };
-		EFCC38BA2974DB4300F64004 /* AppUI in Frameworks */ = {isa = PBXBuildFile; productRef = EFCC38B92974DB4300F64004 /* AppUI */; };
+		EFFD019C29FCFD7300C2782C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFFD019B29FCFD7300C2782C /* AppDelegate.swift */; };
+		EFFD019E29FCFD9C00C2782C /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFFD019D29FCFD9C00C2782C /* SceneDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		EFACEDAB294842D900DDD16E /* StockPhoto.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = StockPhoto.entitlements; sourceTree = "<group>"; };
 		EFB17D602944831200AC956F /* StockPhoto.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StockPhoto.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		EFB17D632944831200AC956F /* StockPhotoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StockPhotoApp.swift; sourceTree = "<group>"; };
 		EFB17D652944831200AC956F /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		EFB17D672944831300AC956F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		EFB17D6A2944831300AC956F /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		EFB17DA22944865100AC956F /* stock-photo */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = "stock-photo"; sourceTree = "<group>"; };
 		EFCC38BD2974DC8400F64004 /* StockPhoto-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "StockPhoto-Info.plist"; sourceTree = "<group>"; };
+		EFFD019B29FCFD7300C2782C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		EFFD019D29FCFD9C00C2782C /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,9 +33,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EFCC38BA2974DB4300F64004 /* AppUI in Frameworks */,
-				EF9D2015297E2BFE0064F061 /* ImageSegmentationClientImpl in Frameworks */,
-				EFACEDAA294489AA00DDD16E /* AppCore in Frameworks */,
+				EF751D1429F4ACA400967E1D /* App in Frameworks */,
+				EF751D1629F5164E00967E1D /* NetworkClientImpl in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -71,7 +71,8 @@
 		EFB17D622944831200AC956F /* App */ = {
 			isa = PBXGroup;
 			children = (
-				EFB17D632944831200AC956F /* StockPhotoApp.swift */,
+				EFFD019B29FCFD7300C2782C /* AppDelegate.swift */,
+				EFFD019D29FCFD9C00C2782C /* SceneDelegate.swift */,
 				EFB17D652944831200AC956F /* RootView.swift */,
 				EFB17D672944831300AC956F /* Assets.xcassets */,
 				EFB17D692944831300AC956F /* Preview Content */,
@@ -104,9 +105,8 @@
 			);
 			name = StockPhoto;
 			packageProductDependencies = (
-				EFACEDA9294489AA00DDD16E /* AppCore */,
-				EFCC38B92974DB4300F64004 /* AppUI */,
-				EF9D2014297E2BFE0064F061 /* ImageSegmentationClientImpl */,
+				EF751D1329F4ACA400967E1D /* App */,
+				EF751D1529F5164E00967E1D /* NetworkClientImpl */,
 			);
 			productName = StockPhoto;
 			productReference = EFB17D602944831200AC956F /* StockPhoto.app */;
@@ -162,8 +162,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EFFD019C29FCFD7300C2782C /* AppDelegate.swift in Sources */,
 				EFB17D662944831200AC956F /* RootView.swift in Sources */,
-				EFB17D642944831200AC956F /* StockPhotoApp.swift in Sources */,
+				EFFD019E29FCFD9C00C2782C /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -376,17 +377,13 @@
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		EF9D2014297E2BFE0064F061 /* ImageSegmentationClientImpl */ = {
+		EF751D1329F4ACA400967E1D /* App */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = ImageSegmentationClientImpl;
+			productName = App;
 		};
-		EFACEDA9294489AA00DDD16E /* AppCore */ = {
+		EF751D1529F5164E00967E1D /* NetworkClientImpl */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = AppCore;
-		};
-		EFCC38B92974DB4300F64004 /* AppUI */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = AppUI;
+			productName = NetworkClientImpl;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
