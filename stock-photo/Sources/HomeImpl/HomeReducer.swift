@@ -4,6 +4,7 @@ import NetworkClient
 import Segmentation
 import StockPhotoFoundation
 import SwiftUI
+import UIImageExtensions
 
 public struct Home<
     SegmentationReducer: ReducerProtocol<SegmentationState, SegmentationAction>
@@ -80,14 +81,21 @@ public struct Home<
 
                 return .task(
                     operation: {
-                        let imageLoadable = try await networkClient.fetchImage(
+                        let image = try await networkClient.fetchImage(
                             FetchImageRequest(
                                 accessToken: accessToken,
-                                imageID: project.id
+                                imageID: project.id,
+                                maskDerivation: project.maskDerivation
                             )
                         )
+                        let projectImages = ProjectImages(
+                            image: image,
+                            maskedImage: project.maskDerivation.flatMap {
+                                image.croppedImage(using: $0.mask.mask.counts)
+                            }
+                        )
                         return .fetchedImage(
-                            .loaded(imageLoadable),
+                            .loaded(projectImages),
                             project: project,
                             accessToken: accessToken
                         )
@@ -100,9 +108,10 @@ public struct Home<
                         )
                     }
                 )
-            case .fetchedImage(let imageLoadable, let project, let accessToken):
-                state.images[project.id] = imageLoadable
+            case .fetchedImage(let projectImagesLoadable, let project, let accessToken):
+                state.images[project.id] = projectImagesLoadable
 
+                // Fetch projects one by one
                 for project in state.projects.value ?? [] {
                     if state.images[project.id] == nil || state.images[project.id] == .notLoaded {
                         return .send(.fetchImage(project, accessToken: accessToken))
@@ -129,7 +138,7 @@ public struct Home<
 extension HomeState {
     var segmentation: SegmentationState? {
         get {
-            guard let selectedProjectID = selectedProjectID, let image = images[selectedProjectID]?.value, let project = projects.value?.first(where: { $0.id ==  selectedProjectID }) else {
+            guard let selectedProjectID = selectedProjectID, let projectImages = images[selectedProjectID]?.value, let project = projects.value?.first(where: { $0.id ==  selectedProjectID }) else {
                 return nil
             }
             guard let accessToken = accessToken else {
@@ -139,7 +148,7 @@ extension HomeState {
                 model: segmentationModel,
                 accessToken: accessToken,
                 project: project,
-                image: image
+                projectImages: projectImages
             )
         }
 

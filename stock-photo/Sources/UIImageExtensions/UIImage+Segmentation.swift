@@ -1,7 +1,7 @@
 import UIKit
 
 extension UIImage {
-    static func renderMaskedImage(from rleData: [Int], color: UIColor, width: Int, height: Int) -> UIImage? {
+    public static func renderMaskedImage(from rleData: [Int], color: UIColor, width: Int, height: Int) -> UIImage? {
         // Create Core Graphics context
         UIGraphicsBeginImageContext(CGSize(width: width, height: height))
         guard let context = UIGraphicsGetCurrentContext() else { return nil }
@@ -29,7 +29,7 @@ extension UIImage {
         return maskedImage
     }
 
-    func croppedImage(using rleData: [Int]) -> UIImage? {
+    public func croppedImage(using rleData: [Int]) -> UIImage? {
         guard let inputCGImage = cgImage else { return nil }
         let (width, height) = (Int(size.width), Int(size.height))
 

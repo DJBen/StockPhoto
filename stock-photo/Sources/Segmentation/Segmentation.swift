@@ -44,7 +44,7 @@ public struct SegmentationState: Equatable {
 
     public var accessToken: String?
     public var project: Project
-    public var image: UIImage
+    public var projectImages: ProjectImages
 
     public var isSegmenting: Bool {
         switch model.segmentationResults[segID] {
@@ -62,6 +62,10 @@ public struct SegmentationState: Equatable {
         default:
             return false
         }
+    }
+
+    public var hasConfirmedSegmentation: Bool {
+        model.segmentationResultConfirmations[segID]?.value != nil
     }
 
     public var segID: SegmentationIdentifier {
@@ -84,12 +88,12 @@ public struct SegmentationState: Equatable {
         model: SegmentationModel,
         accessToken: String?,
         project: Project,
-        image: UIImage
+        projectImages: ProjectImages
     ) {
         self.model = model
         self.accessToken = accessToken
         self.project = project
-        self.image = image
+        self.projectImages = projectImages
     }
 
     public subscript<Value>(dynamicMember keyPath: WritableKeyPath<SegmentationModel, Value>) -> Value {

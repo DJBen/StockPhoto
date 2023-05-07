@@ -17,7 +17,7 @@ public struct SegmentationView: View {
             ImageViewerReader { proxy in
                 VStack(spacing: 0) {
                     ImageViewerView(
-                        image: viewStore.image,
+                        image: viewStore.projectImages.image,
                         onTap: { x, y in
                             // Don't add points if there is currently segmented image
                             if viewStore.segmentedImage[viewStore.segID] != nil {
@@ -51,7 +51,10 @@ public struct SegmentationView: View {
                         } else {
                             ForegroundOverlay(
                                 pointSemantics: viewStore.currentPointSemantics,
-                                radius: min(viewStore.image.size.width, viewStore.image.size.height) / 100
+                                radius: min(
+                                    viewStore.projectImages.image.size.width,
+                                    viewStore.projectImages.image.size.height
+                                ) / 100
                             )
                             .foregroundColor(.green)
                         }
@@ -111,18 +114,21 @@ public struct SegmentationView: View {
             ToolbarItemGroup(
                 placement: .bottomBar
             ) {
-                Button(
-                    role: .destructive,
-                    action: {
-                        viewStore.send(.setIsShowingDeletingSegmentationAlert(true))
+                if !(viewStore.isConfirmingSegmentation || viewStore.hasConfirmedSegmentation) {
+                    Button(
+                        role: .destructive,
+                        action: {
+                            viewStore.send(.setIsShowingDeletingSegmentationAlert(true))
+                        }
+                    ) {
+                        Image(
+                            systemName: "trash"
+                        )
+                        .tint(.red)
                     }
-                ) {
-                    Image(
-                        systemName: "trash"
-                    )
-                    .tint(.red)
+                    .disabled(viewStore.currentPointSemantics.isEmpty)
+
                 }
-                .disabled(viewStore.currentPointSemantics.isEmpty)
 
                 Spacer()
 
@@ -170,7 +176,7 @@ public struct SegmentationView: View {
                         .requestSegmentation(
                             viewStore.segID,
                             accessToken: viewStore.accessToken ?? "invalid",
-                            sourceImage: viewStore.image
+                            sourceImage: viewStore.projectImages.image
                         )
                     )
                 }) {
@@ -272,7 +278,10 @@ struct SegmentationView_Previews: PreviewProvider {
                         model: SegmentationModel(),
                         accessToken: "",
                         project: Project(image: ImageDescriptor(id: 0), maskDerivation: nil),
-                        image: UIImage(named: "Example", in: .module, with: nil)!
+                        projectImages: ProjectImages(
+                            image: UIImage(named: "Example", in: .module, with: nil)!,
+                            maskedImage: nil
+                        )
                     ),
                     reducer: EmptyReducer()
                 )

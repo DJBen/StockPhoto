@@ -22,7 +22,7 @@ public struct HomeView<
 
         struct ImageItem: Equatable {
             let imageID: Int
-            let imageLoadable: Loadable<UIImage, SPError>
+            let projectImagesLoadable: Loadable<ProjectImages, SPError>
         }
 
         var imageItems: [ImageItem]
@@ -37,7 +37,7 @@ public struct HomeView<
                 imageItems: homeState.projects.value?.map { project in
                     ImageItem(
                         imageID: project.id,
-                        imageLoadable: homeState.images[project.id] ?? .loading
+                        projectImagesLoadable: homeState.images[project.id] ?? .loading
                     )
                 } ?? []
             )
@@ -96,7 +96,7 @@ public struct HomeView<
                                 value: StockPhotoDestination.selectedProject(item.imageID)
                             ) {
                                 Group {
-                                    if let image = item.imageLoadable.value {
+                                    if let image = item.projectImagesLoadable.value?.image {
                                         Image(
                                             uiImage: image
                                         )
@@ -187,7 +187,9 @@ public struct HomeView<
                         store.scope(
                             state: SegmentationState.projectToHomeState(
                                 imageID: imageID,
-                                imageLoadable: viewStore.imageItems.first { $0.imageID == imageID }?.imageLoadable,
+                                projectImagesLoadable: viewStore.imageItems.first {
+                                    $0.imageID == imageID
+                                }?.projectImagesLoadable,
                                 projects: viewStore.projects
                             ),
                             action: HomeAction.segmentation

@@ -23,7 +23,7 @@ public struct StockPhoto: ReducerProtocol, Sendable {
         public var selectedPhotoPickerItem: PhotosPickerItem?
         public var transferredImage: Loadable<Image, SPError>
         public var projects: Loadable<[Project], SPError>
-        public var images: [Int: Loadable<UIImage, SPError>]
+        public var images: [Int: Loadable<ProjectImages, SPError>]
         public var segmentationModel: SegmentationModel
         public var displayingErrors: [SPError]
         
@@ -116,7 +116,9 @@ public struct StockPhoto: ReducerProtocol, Sendable {
             }
 
             Reduce { state, action in
-                func handleLoadableError<T>(_ loadable: Loadable<T, SPError>) -> EffectPublisher<StockPhoto.Action, Never> {
+                func handleLoadableError<T>(
+                    _ loadable: Loadable<T, SPError>
+                ) -> EffectPublisher<StockPhoto.Action, Never> {
                     if let error = loadable.error {
                         // If backend returns unauthorized, it is likely that the access token has expired. Clear and re-login.
                         if error.isUnauthorizedError {
@@ -137,7 +139,15 @@ public struct StockPhoto: ReducerProtocol, Sendable {
                     switch homeAction {
                     case .didCompleteTransferImage(let transferredImage):
                         return handleLoadableError(transferredImage)
-                    case .fetchedImage(let imageLoadable, project: _, accessToken: _):
+                    case .fetchedImage(let imageLoadable, project: let project, accessToken: _):
+                        if let maskDerivation = project.maskDerivation {
+                            state.segmentationModel.segmentationResults[maskDerivation.mask.segID] = .loaded(SegmentationResult(id: maskDerivation.mask.maskID, mask: maskDerivation.mask.mask))
+                            state.segmentationModel.pointSemantics[project.id] = maskDerivation.mask.pointSemantics
+                            state.segmentationModel.segmentationResultConfirmations[maskDerivation.mask.segID] = .loaded(maskDerivation.mask.maskID)
+                            if let maskedImage = imageLoadable.value?.maskedImage {
+                                state.segmentationModel.segmentedImage[maskDerivation.mask.segID] = maskedImage
+                            }
+                        }
                         return handleLoadableError(imageLoadable)
                     case .fetchedProjects(let projects, accessToken: _):
                         return handleLoadableError(projects)

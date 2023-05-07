@@ -24,6 +24,7 @@ let package = Package(
         .library(name: "SegmentationImpl", targets: ["SegmentationImpl"]),
         .library(name: "StockPhotoFoundation", targets: ["StockPhotoFoundation"]),
         .library(name: "StockPhotoUI", targets: ["StockPhotoUI"]),
+        .library(name: "UIImageExtensions", targets: ["UIImageExtensions"]),
     ],
     dependencies: [
         .package(
@@ -102,6 +103,7 @@ let package = Package(
                 "Home",
                 "Navigation",
                 "Segmentation",
+                "UIImageExtensions",
             ]
         ),
         .target(
@@ -170,6 +172,7 @@ let package = Package(
                 "ImageViewer",
                 "NetworkClient",
                 "StockPhotoFoundation",
+                "UIImageExtensions",
             ]
         ),
         .target(
@@ -184,7 +187,12 @@ let package = Package(
                 .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
                 .product(name: "Dependencies", package: "swift-dependencies")
             ]
-        )
+        ),
+        .target(
+            name: "UIImageExtensions",
+            dependencies: [
+            ]
+        ),
     ]
 )
 

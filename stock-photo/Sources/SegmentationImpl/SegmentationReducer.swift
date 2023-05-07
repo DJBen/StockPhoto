@@ -3,6 +3,7 @@ import NetworkClient
 import Segmentation
 import StockPhotoFoundation
 import SwiftUI
+import UIImageExtensions
 
 public struct Segmentation: ReducerProtocol, Sendable {
     private var networkClient: NetworkClient

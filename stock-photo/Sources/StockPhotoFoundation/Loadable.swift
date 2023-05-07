@@ -37,3 +37,20 @@ public enum Loadable<T, ErrorType: Error> {
 
 extension Loadable: Equatable where T: Equatable, ErrorType: Equatable {}
 extension Loadable: Sendable where T: Sendable, ErrorType: Sendable {}
+
+extension Loadable {
+    public func map<NewContent>(_ transform: (T) -> NewContent) -> Loadable<NewContent, ErrorType> {
+        switch self {
+        case .notLoaded:
+            return .notLoaded
+        case .loading:
+            return .loading
+        case .loaded(let content):
+            return .loaded(transform(content))
+        case .reloading(let content):
+            return .reloading(transform(content))
+        case .failed(let error):
+            return .failed(error)
+        }
+    }
+}

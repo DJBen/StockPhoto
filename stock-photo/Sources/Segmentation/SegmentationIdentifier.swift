@@ -12,3 +12,9 @@ public struct SegmentationIdentifier: Sendable, Equatable, Hashable {
         self.pointSemantics = pointSemantics
     } 
 }
+
+extension AppliedMask {
+    public var segID: SegmentationIdentifier {
+        SegmentationIdentifier(imageID: imageID, pointSemantics: pointSemantics)
+    }
+}
