@@ -60,6 +60,12 @@ public struct Home<
                         return .fetchedProjects(.failed(SPError.catch(error)), accessToken: accessToken)
                     }
                 )
+            case .retryFetchingProjects(let accessToken):
+                guard state.projects.error != nil else {
+                    return .none
+                }
+                state.projects = .loading
+                return .send(.fetchProjects(accessToken: accessToken))
             case .fetchedProjects(let projects, let accessToken):
                 state.projects = projects
                 guard let projects = projects.value else {

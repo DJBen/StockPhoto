@@ -74,12 +74,14 @@ public struct HomeView<
                         guard let accessToken = viewStore.accessToken else {
                             return
                         }
-                        viewStore.send(.fetchProjects(accessToken: accessToken))
+                        viewStore.send(.retryFetchingProjects(accessToken: accessToken))
                     } label: {
                         Text(
                             "Retry",
                             comment: "The retry button text of the listing image request."
                         )
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
                     }
                     .buttonStyle(.borderedProminent)
 

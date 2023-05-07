@@ -36,6 +36,7 @@ public enum HomeAction: Equatable {
     case selectedPhotosPickerItem(PhotosPickerItem?)
     case didCompleteTransferImage(Loadable<Image, SPError>)
     case fetchProjects(accessToken: String)
+    case retryFetchingProjects(accessToken: String)
     case fetchedProjects(Loadable<[Project], SPError>, accessToken: String)
     case fetchImage(Project, accessToken: String)
     case fetchedImage(Loadable<ProjectImages, SPError>, project: Project, accessToken: String)
