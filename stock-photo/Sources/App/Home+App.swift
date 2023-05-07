@@ -3,7 +3,7 @@ import Home
 extension HomeState {
     static func project(_ appState: StockPhoto.State) -> HomeState {
         HomeState(
-            accessToken: appState.login.accessToken,
+            account: appState.login.account,
             selectedPhotosPickerItem: appState.selectedPhotoPickerItem,
             transferredImage: appState.transferredImage,
             projects: appState.projects,

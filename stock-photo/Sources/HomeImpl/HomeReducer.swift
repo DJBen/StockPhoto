@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import Home
 import NetworkClient
+import Nuke
 import Segmentation
 import StockPhotoFoundation
 import SwiftUI
@@ -9,14 +10,19 @@ import UIImageExtensions
 public struct Home<
     SegmentationReducer: ReducerProtocol<SegmentationState, SegmentationAction>
 >: ReducerProtocol, Sendable {
-    private var networkClient: NetworkClient
-    private var segmentationReducerFactory: @Sendable () -> SegmentationReducer
+    private let networkClient: NetworkClient
+    private let dataCache: DataCaching
+    private let imageEncoder: ImageEncoders.Default = .init()
+    private let imageDecoder: ImageDecoders.Default = .init()
+    private let segmentationReducerFactory: @Sendable () -> SegmentationReducer
 
     public init(
         networkClient: NetworkClient,
+        dataCache: DataCaching,
         segmentationReducerFactory: @escaping @Sendable () -> SegmentationReducer
     ) {
         self.networkClient = networkClient
+        self.dataCache = dataCache
         self.segmentationReducerFactory = segmentationReducerFactory
     }
 
@@ -43,7 +49,7 @@ public struct Home<
             case .didCompleteTransferImage(let transferredImage):
                 state.transferredImage = transferredImage
                 return .none
-            case .fetchProjects(let accessToken):
+            case .fetchProjects(let account):
                 guard state.projects.isLoading else {
                     return .none
                 }
@@ -51,22 +57,22 @@ public struct Home<
                     operation: {
                         let projects = try await networkClient.listProjects(
                             ListProjectsRequest(
-                                accessToken: accessToken
+                                account: account
                             )
                         )
-                        return .fetchedProjects(.loaded(projects.projects), accessToken: accessToken)
+                        return .fetchedProjects(.loaded(projects.projects), account: account)
                     },
                     catch: { error in
-                        return .fetchedProjects(.failed(SPError.catch(error)), accessToken: accessToken)
+                        return .fetchedProjects(.failed(SPError.catch(error)), account: account)
                     }
                 )
-            case .retryFetchingProjects(let accessToken):
+            case .retryFetchingProjects(let account):
                 guard state.projects.error != nil else {
                     return .none
                 }
                 state.projects = .loading
-                return .send(.fetchProjects(accessToken: accessToken))
-            case .fetchedProjects(let projects, let accessToken):
+                return .send(.fetchProjects(account: account))
+            case .fetchedProjects(let projects, let account):
                 state.projects = projects
                 guard let projects = projects.value else {
                     return .none
@@ -74,12 +80,12 @@ public struct Home<
 
                 for project in projects {
                     if state.images[project.id] == nil || state.images[project.id] == .notLoaded {
-                        return .send(.fetchImage(project, accessToken: accessToken))
+                        return .send(.fetchImage(project, account: account))
                     }
                 }
 
                 return .none
-            case .fetchImage(let project, let accessToken):
+            case .fetchImage(let project, let account):
                 // Load image project one by one if there's no in-progress loading.
                 if state.images.contains(where: { $1.isLoading }) {
                     return .none
@@ -89,38 +95,50 @@ public struct Home<
                     operation: {
                         let image = try await networkClient.fetchImage(
                             FetchImageRequest(
-                                accessToken: accessToken,
+                                account: account,
                                 imageID: project.id,
                                 maskDerivation: project.maskDerivation
                             )
                         )
                         let projectImages = ProjectImages(
                             image: image,
-                            maskedImage: project.maskDerivation.flatMap {
-                                image.croppedImage(using: $0.mask.mask.counts)
+                            maskedImage: try project.maskDerivation.flatMap {
+                                let cacheKey = "\(account.userID)_\(project.image)_\($0.id)"
+                                if dataCache.containsData(for: cacheKey), let imageData = dataCache.cachedData(for: cacheKey) {
+                                    return try imageDecoder.decode(imageData).image
+                                }
+
+                                if let croppedImage = image.croppedImage(using: $0.mask.mask.counts) {
+                                    if let encodedImageData = imageEncoder.encode(croppedImage) {
+                                        dataCache.storeData(encodedImageData, for: cacheKey)
+                                    }
+                                    return croppedImage
+                                }
+                                return nil
                             }
                         )
+
                         return .fetchedImage(
                             .loaded(projectImages),
                             project: project,
-                            accessToken: accessToken
+                            account: account
                         )
                     },
                     catch: { error in
                         return .fetchedImage(
                             .failed(SPError.catch(error)),
                             project: project,
-                            accessToken: accessToken
+                            account: account
                         )
                     }
                 )
-            case .fetchedImage(let projectImagesLoadable, let project, let accessToken):
+            case .fetchedImage(let projectImagesLoadable, let project, let account):
                 state.images[project.id] = projectImagesLoadable
 
                 // Fetch projects one by one
                 for project in state.projects.value ?? [] {
                     if state.images[project.id] == nil || state.images[project.id] == .notLoaded {
-                        return .send(.fetchImage(project, accessToken: accessToken))
+                        return .send(.fetchImage(project, account: account))
                     }
                 }
 
@@ -147,12 +165,12 @@ extension HomeState {
             guard let selectedProjectID = selectedProjectID, let projectImages = images[selectedProjectID]?.value, let project = projects.value?.first(where: { $0.id ==  selectedProjectID }) else {
                 return nil
             }
-            guard let accessToken = accessToken else {
+            guard let account = account else {
                 return nil
             }
             return SegmentationState(
                 model: segmentationModel,
-                accessToken: accessToken,
+                account: account,
                 project: project,
                 projectImages: projectImages
             )

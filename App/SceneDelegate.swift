@@ -30,7 +30,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             reducer: StockPhoto(
                 networkClient: NetworkClientImpl(
                     dataCache: dataCache
-                )
+                ),
+                dataCache: dataCache
             )._printChanges()
         )
 

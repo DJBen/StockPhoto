@@ -9,6 +9,7 @@ import Segmentation
 import SegmentationImpl
 import Navigation
 import NetworkClient
+import Nuke
 import PhotosUI
 import StockPhotoFoundation
 import SwiftUI
@@ -84,12 +85,15 @@ public struct StockPhoto: ReducerProtocol, Sendable {
         case dismissError
     }
 
-    private var networkClient: NetworkClient
+    private let networkClient: NetworkClient
+    private let dataCache: DataCaching
 
     public init(
-        networkClient: NetworkClient
+        networkClient: NetworkClient,
+        dataCache: DataCaching
     ) {
         self.networkClient = networkClient
+        self.dataCache = dataCache
     }
 
     public var body: some ReducerProtocol<State, Action> {
@@ -105,6 +109,7 @@ public struct StockPhoto: ReducerProtocol, Sendable {
             Scope(state: \.home, action: /Action.home) {
                 Home(
                     networkClient: networkClient,
+                    dataCache: dataCache,
                     segmentationReducerFactory: {
                         Segmentation(networkClient: networkClient)
                     }
@@ -139,7 +144,7 @@ public struct StockPhoto: ReducerProtocol, Sendable {
                     switch homeAction {
                     case .didCompleteTransferImage(let transferredImage):
                         return handleLoadableError(transferredImage)
-                    case .fetchedImage(let imageLoadable, project: let project, accessToken: _):
+                    case .fetchedImage(let imageLoadable, project: let project, account: _):
                         if let maskDerivation = project.maskDerivation {
                             state.segmentationModel.segmentationResults[maskDerivation.mask.segID] = .loaded(SegmentationResult(id: maskDerivation.mask.maskID, mask: maskDerivation.mask.mask))
                             state.segmentationModel.pointSemantics[project.id] = maskDerivation.mask.pointSemantics
@@ -149,7 +154,7 @@ public struct StockPhoto: ReducerProtocol, Sendable {
                             }
                         }
                         return handleLoadableError(imageLoadable)
-                    case .fetchedProjects(let projects, accessToken: _):
+                    case .fetchedProjects(let projects, account: _):
                         return handleLoadableError(projects)
                     case .segmentation(let segmentationAction):
                         switch segmentationAction {

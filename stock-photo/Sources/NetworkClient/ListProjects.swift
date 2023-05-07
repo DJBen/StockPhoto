@@ -2,12 +2,16 @@ import Foundation
 import StockPhotoFoundation
 
 public struct ListProjectsRequest: Equatable, Encodable {
-    public let accessToken: String
+    public let account: Account
 
     public init(
-        accessToken: String
+        account: Account
     ) {
-        self.accessToken = accessToken
+        self.account = account
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        // Does not encode account field
     }
 }
 

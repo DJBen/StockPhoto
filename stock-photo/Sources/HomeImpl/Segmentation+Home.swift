@@ -18,7 +18,7 @@ extension SegmentationState {
             }
             return SegmentationState(
                 model: homeState.segmentationModel,
-                accessToken: homeState.accessToken,
+                account: homeState.account,
                 project: project,
                 projectImages: image
             )

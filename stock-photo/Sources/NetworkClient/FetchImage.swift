@@ -3,16 +3,16 @@ import StockPhotoFoundation
 import UIKit
 
 public struct FetchImageRequest: Equatable, Encodable {
-    public let accessToken: String
+    public let account: Account
     public let imageID: Int
     public let maskDerivation: MaskDerivation?
 
     public init(
-        accessToken: String,
+        account: Account,
         imageID: Int,
         maskDerivation: MaskDerivation?
     ) {
-        self.accessToken = accessToken
+        self.account = account
         self.imageID = imageID
         self.maskDerivation = maskDerivation
     }

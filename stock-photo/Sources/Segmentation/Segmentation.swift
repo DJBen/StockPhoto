@@ -42,7 +42,7 @@ public struct SegmentationModel: Equatable, Sendable {
 public struct SegmentationState: Equatable {
     public var model: SegmentationModel
 
-    public var accessToken: String?
+    public var account: Account?
     public var project: Project
     public var projectImages: ProjectImages
 
@@ -86,12 +86,12 @@ public struct SegmentationState: Equatable {
 
     public init(
         model: SegmentationModel,
-        accessToken: String?,
+        account: Account?,
         project: Project,
         projectImages: ProjectImages
     ) {
         self.model = model
-        self.accessToken = accessToken
+        self.account = account
         self.project = project
         self.projectImages = projectImages
     }
@@ -112,7 +112,7 @@ public enum SegmentationAction: Equatable {
     case discardSegmentedImage(SegmentationIdentifier)
     case requestSegmentation(
         SegmentationIdentifier,
-        accessToken: String,
+        account: Account,
         sourceImage: UIImage
     )
     case didCompleteSegmentation(
@@ -124,7 +124,7 @@ public enum SegmentationAction: Equatable {
     case confirmSegmentationResult(
         maskID: Int,
         segID: SegmentationIdentifier,
-        accessToken: String
+        account: Account
     )
     case confirmedSegmentationResult(
         Loadable<Int, SPError>,

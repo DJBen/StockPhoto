@@ -1,16 +1,16 @@
 import StockPhotoFoundation
 
 public struct SegmentRequest: Equatable, Encodable {
-    public let accessToken: String
+    public let account: Account
     public let imageID: Int
     public let pointSemantics: [PointSemantic]
 
     public init(
-        accessToken: String,
+        account: Account,
         imageID: Int,
         pointSemantics: [PointSemantic]
     ) {
-        self.accessToken = accessToken
+        self.account = account
         self.imageID = imageID
         self.pointSemantics = pointSemantics
     }

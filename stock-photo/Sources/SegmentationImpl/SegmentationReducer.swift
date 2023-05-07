@@ -31,7 +31,7 @@ public struct Segmentation: ReducerProtocol, Sendable {
                 return .none
             case .requestSegmentation(
                 let segID,
-                let accessToken,
+                let account,
                 let sourceImage
             ):
                 state.segmentationResults[segID] = .loading
@@ -40,7 +40,7 @@ public struct Segmentation: ReducerProtocol, Sendable {
                     operation: {
                         let response = try await networkClient.segment(
                             SegmentRequest(
-                                accessToken: accessToken,
+                                account: account,
                                 imageID: segID.imageID,
                                 pointSemantics: segID.pointSemantics
                             )
@@ -74,13 +74,13 @@ public struct Segmentation: ReducerProtocol, Sendable {
             case .setIsShowingDeletingSegmentationAlert(let isShowing):
                 state.isShowingDeletingSegmentationAlert = isShowing
                 return .none
-            case .confirmSegmentationResult(let maskID, segID: let segID, accessToken: let accessToken):
+            case .confirmSegmentationResult(let maskID, segID: let segID, account: let account):
                 state.segmentationResultConfirmations[segID] = .loading
                 return .task(
                     operation: {
                         let response = try await networkClient.confirmMask(
                             ConfirmMaskRequest(
-                                accessToken: accessToken,
+                                account: account,
                                 imageID: segID.imageID,
                                 maskID: maskID
                             )

@@ -137,7 +137,7 @@ public struct SegmentationView: View {
                         .confirmSegmentationResult(
                             maskID: segmentationResult.id,
                             segID: viewStore.segID,
-                            accessToken: viewStore.accessToken ?? "invalid"
+                            account: viewStore.account ?? Account(accessToken: "invalid", userID: "")
                         )
                     )
                 }) {
@@ -175,7 +175,7 @@ public struct SegmentationView: View {
                     viewStore.send(
                         .requestSegmentation(
                             viewStore.segID,
-                            accessToken: viewStore.accessToken ?? "invalid",
+                            account: viewStore.account ?? Account(accessToken: "invalid", userID: ""),
                             sourceImage: viewStore.projectImages.image
                         )
                     )
@@ -276,7 +276,7 @@ struct SegmentationView_Previews: PreviewProvider {
                 store: StoreOf<Segmentation>(
                     initialState: SegmentationState(
                         model: SegmentationModel(),
-                        accessToken: "",
+                        account: Account(accessToken: "", userID: ""),
                         project: Project(image: ImageDescriptor(id: 0), maskDerivation: nil),
                         projectImages: ProjectImages(
                             image: UIImage(named: "Example", in: .module, with: nil)!,

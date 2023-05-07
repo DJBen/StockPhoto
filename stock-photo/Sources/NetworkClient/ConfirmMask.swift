@@ -1,14 +1,16 @@
+import StockPhotoFoundation
+
 public struct ConfirmMaskRequest: Equatable, Encodable {
-    public let accessToken: String
+    public let account: Account
     public let imageID: Int
     public let maskID: Int
 
     public init(
-        accessToken: String,
+        account: Account,
         imageID: Int,
         maskID: Int
     ) {
-        self.accessToken = accessToken
+        self.account = account
         self.imageID = imageID
         self.maskID = maskID
     }

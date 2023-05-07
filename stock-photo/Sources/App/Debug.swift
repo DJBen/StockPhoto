@@ -1,3 +1,5 @@
+import StockPhotoFoundation
+
 public struct DebugModel: Equatable {
     public var isPresentingDebugSheet: Bool = false
 }
@@ -5,14 +7,14 @@ public struct DebugModel: Equatable {
 @dynamicMemberLookup
 public struct DebugState: Equatable {
     public var model: DebugModel
-    public var accessToken: String?
+    public var account: Account?
 
     public init(
         model: DebugModel,
-        accessToken: String?
+        account: Account?
     ) {
         self.model = model
-        self.accessToken = accessToken
+        self.account = account
     }
 
     public subscript<Value>(dynamicMember keyPath: WritableKeyPath<DebugModel, Value>) -> Value {

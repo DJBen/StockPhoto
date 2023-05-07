@@ -102,7 +102,7 @@ extension NetworkClientImpl: NetworkClient {
             let url = URL(string: "/image", relativeTo: URL(string: NetworkClientImpl.baseURL)!)!
             var urlRequest = URLRequest(url: url)
             urlRequest.httpMethod = "POST"
-            urlRequest.setValue("Bearer \(request.accessToken)", forHTTPHeaderField: "Authorization")
+            urlRequest.setValue("Bearer \(request.account.accessToken)", forHTTPHeaderField: "Authorization")
 
             let boundary = UUID().uuidString
             let contentType = "multipart/form-data; boundary=\(boundary)"
@@ -160,7 +160,7 @@ extension NetworkClientImpl: NetworkClient {
 
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "GET"
-        urlRequest.setValue("Bearer \(request.accessToken)", forHTTPHeaderField: "Authorization")
+        urlRequest.setValue("Bearer \(request.account.accessToken)", forHTTPHeaderField: "Authorization")
 
         let (data, response) = try await URLSession.shared.data(for: urlRequest)
 
@@ -173,7 +173,7 @@ extension NetworkClientImpl: NetworkClient {
     }
 
     public func fetchImage(_ request: FetchImageRequest) async throws -> UIImage {
-        let cacheKey = "\(request.accessToken)_\(request.imageID)"
+        let cacheKey = "\(request.account.userID)_\(request.imageID)"
         if dataCache.containsData(for: cacheKey), let imageData = dataCache.cachedData(for: cacheKey) {
             return try imageDecoder.decode(imageData).image
         }
@@ -183,7 +183,7 @@ extension NetworkClientImpl: NetworkClient {
 
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "GET"
-        urlRequest.setValue("Bearer \(request.accessToken)", forHTTPHeaderField: "Authorization")
+        urlRequest.setValue("Bearer \(request.account.accessToken)", forHTTPHeaderField: "Authorization")
 
         let (data, response) = try await URLSession.shared.data(for: urlRequest)
 
@@ -208,7 +208,7 @@ extension NetworkClientImpl: NetworkClient {
 
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "POST"
-        urlRequest.setValue("Bearer \(request.accessToken)", forHTTPHeaderField: "Authorization")
+        urlRequest.setValue("Bearer \(request.account.accessToken)", forHTTPHeaderField: "Authorization")
         urlRequest.addValue("application/json", forHTTPHeaderField: "Content-Type")
 
         let jsonEncoder = JSONEncoder()
@@ -230,7 +230,7 @@ extension NetworkClientImpl: NetworkClient {
 
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "POST"
-        urlRequest.setValue("Bearer \(request.accessToken)", forHTTPHeaderField: "Authorization")
+        urlRequest.setValue("Bearer \(request.account.accessToken)", forHTTPHeaderField: "Authorization")
         urlRequest.addValue("application/json", forHTTPHeaderField: "Content-Type")
 
         let jsonEncoder = JSONEncoder()

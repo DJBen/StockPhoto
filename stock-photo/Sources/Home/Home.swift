@@ -5,7 +5,7 @@ import SwiftUI
 import UIKit
 
 public struct HomeState: Equatable {
-    public var accessToken: String?
+    public var account: Account?
     public var selectedPhotosPickerItem: PhotosPickerItem?
     public var transferredImage: Loadable<Image, SPError>
     public var projects: Loadable<[Project], SPError>
@@ -14,7 +14,7 @@ public struct HomeState: Equatable {
     public var segmentationModel: SegmentationModel
 
     public init(
-        accessToken: String?,
+        account: Account?,
         selectedPhotosPickerItem: PhotosPickerItem?,
         transferredImage: Loadable<Image, SPError>,
         projects: Loadable<[Project], SPError>,
@@ -22,7 +22,7 @@ public struct HomeState: Equatable {
         selectedProjectID: Int?,
         segmentationModel: SegmentationModel
     ) {
-        self.accessToken = accessToken
+        self.account = account
         self.selectedPhotosPickerItem = selectedPhotosPickerItem
         self.transferredImage = transferredImage
         self.projects = projects
@@ -35,11 +35,11 @@ public struct HomeState: Equatable {
 public enum HomeAction: Equatable {
     case selectedPhotosPickerItem(PhotosPickerItem?)
     case didCompleteTransferImage(Loadable<Image, SPError>)
-    case fetchProjects(accessToken: String)
-    case retryFetchingProjects(accessToken: String)
-    case fetchedProjects(Loadable<[Project], SPError>, accessToken: String)
-    case fetchImage(Project, accessToken: String)
-    case fetchedImage(Loadable<ProjectImages, SPError>, project: Project, accessToken: String)
+    case fetchProjects(account: Account)
+    case retryFetchingProjects(account: Account)
+    case fetchedProjects(Loadable<[Project], SPError>, account: Account)
+    case fetchImage(Project, account: Account)
+    case fetchedImage(Loadable<ProjectImages, SPError>, project: Project, account: Account)
     case selectProjectID(Int?)
     case segmentation(SegmentationAction)
     case logout

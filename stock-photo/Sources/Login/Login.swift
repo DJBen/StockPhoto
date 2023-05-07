@@ -16,8 +16,7 @@ public struct Login: ReducerProtocol, Sendable {
     public struct State: Equatable {
         /// Whether to show the login sheet. It shows after the app fails to obtain the access token.
         public var isShowingLoginSheet: Bool = false
-        public var accessToken: String?
-        public var userID: String?
+        public var account: Account?
         /// Whether it is calling our backend service to authenticate.
         ///
         /// Signin buttons should be disabled, until either successful or failed result returns.
@@ -32,7 +31,7 @@ public struct Login: ReducerProtocol, Sendable {
         case didObtainCredentialFromGoogle(GoogleCredentials)
         case didObtainCredentialFromApple(ASAuthorizationAppleIDCredential)
         case didFailLogin(SPError)
-        case didAuthenticate(accessToken: String, userID: String)
+        case didAuthenticate(Account)
         /// Remove existing saved access token and re-authenticate
         case resetAccessToken
         /// The credential is not found in the keychain. Present login screen normally.
@@ -65,18 +64,21 @@ public struct Login: ReducerProtocol, Sendable {
                 return .task {
                     if let accessToken = keychain[accessTokenKey] {
                         let userID = try! jwtExtractor.extractSubFromJWT(accessToken)
-                        return .didAuthenticate(accessToken: accessToken, userID: userID)
+                        return .didAuthenticate(
+                            Account(accessToken: accessToken, userID: userID)
+                        )
                     } else {
                         return .didNotFindAccessToken
                     }
                 }
             case .wreckAccessToken:
-                if let accessToken = state.accessToken {
+                if let account = state.account {
+                    let accessToken = account.accessToken
                     if let dotRange = accessToken.range(of: ".", options: .backwards) {
                         let firstPart = accessToken[..<dotRange.lowerBound]
                         let invalidSignature = "invalid_signature"
                         let invalidJwtToken = firstPart + "." + invalidSignature
-                        state.accessToken = invalidJwtToken
+                        state.account?.accessToken = invalidJwtToken
                         return .fireAndForget {
                             keychain[accessTokenKey] = invalidJwtToken
                         }
@@ -99,7 +101,9 @@ public struct Login: ReducerProtocol, Sendable {
                         )
                         keychain[accessTokenKey] = response.accessToken
                         let userID = try jwtExtractor.extractSubFromJWT(response.accessToken)
-                        return .didAuthenticate(accessToken: response.accessToken, userID: userID)
+                        return .didAuthenticate(
+                            Account(accessToken: response.accessToken, userID: userID)
+                        )
                     },
                     catch: { error in
                         return .didFailLogin(SPError.catch(error))
@@ -130,19 +134,23 @@ public struct Login: ReducerProtocol, Sendable {
                         )
                         keychain[accessTokenKey] = response.accessToken
                         let userID = try jwtExtractor.extractSubFromJWT(response.accessToken)
-                        return .didAuthenticate(accessToken: response.accessToken, userID: userID)
+                        return .didAuthenticate(
+                            Account(
+                                accessToken: response.accessToken,
+                                userID: userID
+                            )
+                        )
                     },
                     catch: { error in
                         return .didFailLogin(SPError.catch(error))
                     }
                 )
-            case .didAuthenticate(let accessToken, let userID):
-                state.accessToken = accessToken
-                state.userID = userID
+            case .didAuthenticate(let account):
+                state.account = account
                 state.isShowingLoginSheet = false
                 return .none
             case .resetAccessToken:
-                state.accessToken = nil
+                state.account = nil
                 return .task {
                     keychain[accessTokenKey] = nil
                     return .didNotFindAccessToken

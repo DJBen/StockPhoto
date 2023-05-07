@@ -14,7 +14,7 @@ public struct HomeView<
     let segmentViewBuilder: (StoreOf<SegmentationReducer>) -> SegmentationViewType
 
     struct ViewState: Equatable {
-        var accessToken: String?
+        var account: Account?
         var selectedPhotosPickerItem: PhotosPickerItem?
         var transferredImage: Loadable<Image, SPError>
         var projects: Loadable<[Project], SPError>
@@ -29,7 +29,7 @@ public struct HomeView<
 
         static func project(_ homeState: HomeState) -> ViewState {
             ViewState(
-                accessToken: homeState.accessToken,
+                account: homeState.account,
                 selectedPhotosPickerItem: homeState.selectedPhotosPickerItem,
                 transferredImage: homeState.transferredImage,
                 projects: homeState.projects,
@@ -71,10 +71,10 @@ public struct HomeView<
                 } else if viewStore.projects.error != nil {
                     Spacer()
                     Button {
-                        guard let accessToken = viewStore.accessToken else {
+                        guard let account = viewStore.account else {
                             return
                         }
-                        viewStore.send(.retryFetchingProjects(accessToken: accessToken))
+                        viewStore.send(.retryFetchingProjects(account: account))
                     } label: {
                         Text(
                             "Retry",
@@ -165,19 +165,19 @@ public struct HomeView<
                 }
             }
             .onAppear {
-                guard let accessToken = viewStore.accessToken else {
+                guard let account = viewStore.account else {
                     return
                 }
                 viewStore.send(
-                    .fetchProjects(accessToken: accessToken)
+                    .fetchProjects(account: account)
                 )
             }
-            .onChange(of: viewStore.accessToken) { newAccessToken in
-                guard let newAccessToken = newAccessToken else {
+            .onChange(of: viewStore.account) { newAccount in
+                guard let newAccount = newAccount else {
                     return
                 }
                 viewStore.send(
-                    .fetchProjects(accessToken: newAccessToken)
+                    .fetchProjects(account: newAccount)
                 )
             }
             .navigationDestination(for: StockPhotoDestination.self) { destination in
