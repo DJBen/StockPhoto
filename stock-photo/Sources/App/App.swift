@@ -22,7 +22,7 @@ public struct StockPhoto: ReducerProtocol, Sendable {
         public var imageCapture: ImageCaptureState
         public var selectedPhotoPickerItem: PhotosPickerItem?
         public var transferredImage: Loadable<Image, SPError>
-        public var imageProjects: Loadable<[ImageProject], SPError>
+        public var projects: Loadable<[Project], SPError>
         public var images: [Int: Loadable<UIImage, SPError>]
         public var segmentationModel: SegmentationModel
         public var displayingErrors: [SPError]
@@ -52,7 +52,7 @@ public struct StockPhoto: ReducerProtocol, Sendable {
             self.imageCapture = ImageCaptureState()
             self.selectedPhotoPickerItem = nil
             self.transferredImage = .notLoaded
-            self.imageProjects = .loading
+            self.projects = .loading
             self.images = [:]
             self.segmentationModel = SegmentationModel()
             self.displayingErrors = []
@@ -137,10 +137,10 @@ public struct StockPhoto: ReducerProtocol, Sendable {
                     switch homeAction {
                     case .didCompleteTransferImage(let transferredImage):
                         return handleLoadableError(transferredImage)
-                    case .fetchedImage(let imageLoadable, imageProject: _, accessToken: _):
+                    case .fetchedImage(let imageLoadable, project: _, accessToken: _):
                         return handleLoadableError(imageLoadable)
-                    case .fetchedImageProjects(let imageProjects, accessToken: _):
-                        return handleLoadableError(imageProjects)
+                    case .fetchedProjects(let projects, accessToken: _):
+                        return handleLoadableError(projects)
                     case .segmentation(let segmentationAction):
                         switch segmentationAction {
                         case .didCompleteSegmentation(let masksLoadable, segmentedImage: _, segID: _):

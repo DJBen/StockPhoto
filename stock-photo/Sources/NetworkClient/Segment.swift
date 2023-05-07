@@ -1,4 +1,4 @@
-import Segmentation
+import StockPhotoFoundation
 
 public struct SegmentRequest: Equatable, Encodable {
     public let accessToken: String

@@ -5,7 +5,7 @@ import UIKit
 /// Store the segmentation related data model.
 ///
 /// Note this data model should not have derived properties from other modules (like login credentials).
-public struct SegmentationModel: Equatable {
+public struct SegmentationModel: Equatable, Sendable {
     /// The segment masks generated from the request identified by `SegmentationIdentifier`.
     ///
     /// Multiple masks may be generated from the same image, if their point semantics are different.
@@ -43,7 +43,7 @@ public struct SegmentationState: Equatable {
     public var model: SegmentationModel
 
     public var accessToken: String?
-    public var imageProject: ImageProject
+    public var project: Project
     public var image: UIImage
 
     public var isSegmenting: Bool {
@@ -66,29 +66,29 @@ public struct SegmentationState: Equatable {
 
     public var segID: SegmentationIdentifier {
         return SegmentationIdentifier(
-            imageID: imageProject.id,
-            pointSemantics: model.pointSemantics[imageProject.id] ?? []
+            imageID: project.id,
+            pointSemantics: model.pointSemantics[project.id] ?? []
         )
     }
 
     public var currentPointSemantics: [PointSemantic] {
         get {
-            model.pointSemantics[imageProject.id] ?? []
+            model.pointSemantics[project.id] ?? []
         }
         set {
-            model.pointSemantics[imageProject.id] = newValue
+            model.pointSemantics[project.id] = newValue
         }
     }
 
     public init(
         model: SegmentationModel,
         accessToken: String?,
-        imageProject: ImageProject,
+        project: Project,
         image: UIImage
     ) {
         self.model = model
         self.accessToken = accessToken
-        self.imageProject = imageProject
+        self.project = project
         self.image = image
     }
 
@@ -118,7 +118,7 @@ public enum SegmentationAction: Equatable {
     )
     case setIsShowingDeletingSegmentationAlert(Bool)
     case confirmSegmentationResult(
-        SegmentationResult,
+        maskID: Int,
         segID: SegmentationIdentifier,
         accessToken: String
     )

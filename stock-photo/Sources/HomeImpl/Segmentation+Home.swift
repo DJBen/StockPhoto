@@ -7,10 +7,10 @@ extension SegmentationState {
     static func projectToHomeState(
         imageID: Int,
         imageLoadable: Loadable<UIImage, SPError>?,
-        imageProjects: Loadable<[ImageProject], SPError>
+        projects: Loadable<[Project], SPError>
     ) -> (_ homeState: HomeState) -> SegmentationState? {
         { homeState in
-            guard let imageProject = imageProjects.value?.first(where: { $0.id == imageID }) else {
+            guard let project = projects.value?.first(where: { $0.id == imageID }) else {
                 return nil
             }
             guard let image = imageLoadable?.value else {
@@ -19,7 +19,7 @@ extension SegmentationState {
             return SegmentationState(
                 model: homeState.segmentationModel,
                 accessToken: homeState.accessToken,
-                imageProject: imageProject,
+                project: project,
                 image: image
             )
         }

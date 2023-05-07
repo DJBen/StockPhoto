@@ -45,7 +45,7 @@ public struct ImageCaptureView: View {
                         )
                     )
                     .toolbar(.hidden, for: .navigationBar)
-                case .selectedImageProject(_):
+                case .selectedProject(_):
                     EmptyView()
                 }
             }

@@ -8,26 +8,26 @@ public struct HomeState: Equatable {
     public var accessToken: String?
     public var selectedPhotosPickerItem: PhotosPickerItem?
     public var transferredImage: Loadable<Image, SPError>
-    public var imageProjects: Loadable<[ImageProject], SPError>
+    public var projects: Loadable<[Project], SPError>
     public var images: [Int: Loadable<UIImage, SPError>]
-    public var selectedImageProjectID: Int?
+    public var selectedProjectID: Int?
     public var segmentationModel: SegmentationModel
 
     public init(
         accessToken: String?,
         selectedPhotosPickerItem: PhotosPickerItem?,
         transferredImage: Loadable<Image, SPError>,
-        imageProjects: Loadable<[ImageProject], SPError>,
+        projects: Loadable<[Project], SPError>,
         images: [Int: Loadable<UIImage, SPError>],
-        selectedImageProjectID: Int?,
+        selectedProjectID: Int?,
         segmentationModel: SegmentationModel
     ) {
         self.accessToken = accessToken
         self.selectedPhotosPickerItem = selectedPhotosPickerItem
         self.transferredImage = transferredImage
-        self.imageProjects = imageProjects
+        self.projects = projects
         self.images = images
-        self.selectedImageProjectID = selectedImageProjectID
+        self.selectedProjectID = selectedProjectID
         self.segmentationModel = segmentationModel
     }
 }
@@ -35,11 +35,11 @@ public struct HomeState: Equatable {
 public enum HomeAction: Equatable {
     case selectedPhotosPickerItem(PhotosPickerItem?)
     case didCompleteTransferImage(Loadable<Image, SPError>)
-    case fetchImageProjects(accessToken: String)
-    case fetchedImageProjects(Loadable<[ImageProject], SPError>, accessToken: String)
-    case fetchImage(ImageProject, accessToken: String)
-    case fetchedImage(Loadable<UIImage, SPError>, imageProject: ImageProject, accessToken: String)
-    case selectImageProjectID(Int?)
+    case fetchProjects(accessToken: String)
+    case fetchedProjects(Loadable<[Project], SPError>, accessToken: String)
+    case fetchImage(Project, accessToken: String)
+    case fetchedImage(Loadable<UIImage, SPError>, project: Project, accessToken: String)
+    case selectProjectID(Int?)
     case segmentation(SegmentationAction)
     case logout
 }

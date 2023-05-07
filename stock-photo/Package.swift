@@ -91,6 +91,7 @@ let package = Package(
             name: "Home",
             dependencies: [
                 .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+                "NetworkClient",
                 "StockPhotoFoundation",
             ]
         ),
@@ -139,14 +140,12 @@ let package = Package(
         .target(
             name: "NetworkClient",
             dependencies: [
-                "Home",
-                "Segmentation",
+                "StockPhotoFoundation",
             ]
         ),
         .target(
             name: "NetworkClientImpl",
             dependencies: [
-                "Home",
                 "NetworkClient",
                 .product(name: "Nuke", package: "Nuke"),
                 "StockPhotoFoundation",
@@ -162,7 +161,6 @@ let package = Package(
         .target(
             name: "Segmentation",
             dependencies: [
-                .product(name: "CustomDump", package: "swift-custom-dump"),
                 "StockPhotoFoundation",
             ]
         ),
@@ -177,6 +175,7 @@ let package = Package(
         .target(
             name: "StockPhotoFoundation",
             dependencies: [
+                .product(name: "CustomDump", package: "swift-custom-dump"),
             ]
         ),
         .target(

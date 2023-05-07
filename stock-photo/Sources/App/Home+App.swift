@@ -6,13 +6,13 @@ extension HomeState {
             accessToken: appState.login.accessToken,
             selectedPhotosPickerItem: appState.selectedPhotoPickerItem,
             transferredImage: appState.transferredImage,
-            imageProjects: appState.imageProjects,
+            projects: appState.projects,
             images: appState.images,
-            selectedImageProjectID: {
+            selectedProjectID: {
                 for destination in appState.destinations {
                     switch destination {
-                    case .selectedImageProject(let imageProjectID):
-                        return imageProjectID
+                    case .selectedProject(let projectID):
+                        return projectID
                     default:
                         break
                     }
@@ -26,7 +26,7 @@ extension HomeState {
     func apply(_ appState: inout StockPhoto.State) {
         appState.selectedPhotoPickerItem = selectedPhotosPickerItem
         appState.transferredImage = transferredImage
-        appState.imageProjects = imageProjects
+        appState.projects = projects
         appState.images = images
         appState.segmentationModel = segmentationModel
     }

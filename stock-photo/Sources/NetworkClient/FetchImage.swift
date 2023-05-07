@@ -1,5 +1,4 @@
 import Foundation
-import Home
 
 public struct FetchImageRequest: Equatable, Encodable {
     public let accessToken: String

@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Point: Sendable, Equatable, Encodable, Hashable {
+public struct Point: Sendable, Equatable, Codable, Hashable {
     public let x: Int
     public let y: Int
 
@@ -15,14 +15,25 @@ public struct Point: Sendable, Equatable, Encodable, Hashable {
         try container.encode(y)
     }
 
+    public init(from decoder: Decoder) throws {
+        var container = try decoder.unkeyedContainer()
+        self.x = try container.decode(Int.self)
+        self.y = try container.decode(Int.self)
+    }
+
     public func distance(to point: Point) -> Float {
         return sqrtf(Float((x - point.x) * (x - point.x) + (y - point.y) * (y - point.y)))
     }
 }
 
-public enum PointLabel: Int, Sendable, Equatable, Hashable {
+public enum PointLabel: Int, Sendable, Equatable, Decodable, Hashable {
     case foreground = 1
     case background = 0
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        self.init(rawValue: try container.decode(Int.self))!
+    }
 }
 
 public struct PointSemantic: Sendable, Equatable, Hashable, Identifiable {

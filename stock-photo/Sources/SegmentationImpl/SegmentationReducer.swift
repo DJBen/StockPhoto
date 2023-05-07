@@ -73,7 +73,7 @@ public struct Segmentation: ReducerProtocol, Sendable {
             case .setIsShowingDeletingSegmentationAlert(let isShowing):
                 state.isShowingDeletingSegmentationAlert = isShowing
                 return .none
-            case .confirmSegmentationResult(let segmentationResult, segID: let segID, accessToken: let accessToken):
+            case .confirmSegmentationResult(let maskID, segID: let segID, accessToken: let accessToken):
                 state.segmentationResultConfirmations[segID] = .loading
                 return .task(
                     operation: {
@@ -81,11 +81,11 @@ public struct Segmentation: ReducerProtocol, Sendable {
                             ConfirmMaskRequest(
                                 accessToken: accessToken,
                                 imageID: segID.imageID,
-                                maskID: segmentationResult.id
+                                maskID: maskID
                             )
                         )
                         return .confirmedSegmentationResult(
-                            .loaded(response.imageID),
+                            .loaded(response.maskID),
                             segID: segID
                         )
                     },

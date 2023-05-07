@@ -1,5 +1,3 @@
-
-
 public struct ConfirmMaskRequest: Equatable, Encodable {
     public let accessToken: String
     public let imageID: Int

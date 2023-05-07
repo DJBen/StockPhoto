@@ -17,8 +17,8 @@ public struct HomeView<
         var accessToken: String?
         var selectedPhotosPickerItem: PhotosPickerItem?
         var transferredImage: Loadable<Image, SPError>
-        var imageProjects: Loadable<[ImageProject], SPError>
-        var selectedImageProjectID: Int?
+        var projects: Loadable<[Project], SPError>
+        var selectedProjectID: Int?
 
         struct ImageItem: Equatable {
             let imageID: Int
@@ -32,12 +32,12 @@ public struct HomeView<
                 accessToken: homeState.accessToken,
                 selectedPhotosPickerItem: homeState.selectedPhotosPickerItem,
                 transferredImage: homeState.transferredImage,
-                imageProjects: homeState.imageProjects,
-                selectedImageProjectID: homeState.selectedImageProjectID,
-                imageItems: homeState.imageProjects.value?.map { imageProject in
+                projects: homeState.projects,
+                selectedProjectID: homeState.selectedProjectID,
+                imageItems: homeState.projects.value?.map { project in
                     ImageItem(
-                        imageID: imageProject.id,
-                        imageLoadable: homeState.images[imageProject.id] ?? .loading
+                        imageID: project.id,
+                        imageLoadable: homeState.images[project.id] ?? .loading
                     )
                 } ?? []
             )
@@ -58,7 +58,7 @@ public struct HomeView<
             observe: ViewState.project
         ) { viewStore in
             VStack {
-                if viewStore.imageProjects.isLoading {
+                if viewStore.projects.isLoading {
                     Spacer()
                     ProgressView {
                         Text(
@@ -68,16 +68,32 @@ public struct HomeView<
                         .multilineTextAlignment(.center)
                     }
                     Spacer()
+                } else if viewStore.projects.error != nil {
+                    Spacer()
+                    Button {
+                        guard let accessToken = viewStore.accessToken else {
+                            return
+                        }
+                        viewStore.send(.fetchProjects(accessToken: accessToken))
+                    } label: {
+                        Text(
+                            "Retry",
+                            comment: "The retry button text of the listing image request."
+                        )
+                    }
+                    .buttonStyle(.borderedProminent)
+
+                    Spacer()
                 } else {
                     List(
                         selection: viewStore.binding(
-                            get: \.selectedImageProjectID,
-                            send: HomeAction.selectImageProjectID
+                            get: \.selectedProjectID,
+                            send: HomeAction.selectProjectID
                         )
                     ) {
                         ForEach(viewStore.imageItems, id: \.imageID) { item in
                             NavigationLink(
-                                value: StockPhotoDestination.selectedImageProject(item.imageID)
+                                value: StockPhotoDestination.selectedProject(item.imageID)
                             ) {
                                 Group {
                                     if let image = item.imageLoadable.value {
@@ -151,7 +167,7 @@ public struct HomeView<
                     return
                 }
                 viewStore.send(
-                    .fetchImageProjects(accessToken: accessToken)
+                    .fetchProjects(accessToken: accessToken)
                 )
             }
             .onChange(of: viewStore.accessToken) { newAccessToken in
@@ -159,20 +175,20 @@ public struct HomeView<
                     return
                 }
                 viewStore.send(
-                    .fetchImageProjects(accessToken: newAccessToken)
+                    .fetchProjects(accessToken: newAccessToken)
                 )
             }
             .navigationDestination(for: StockPhotoDestination.self) { destination in
                 switch destination {
                 case .postImageCapture(_):
                     EmptyView()
-                case .selectedImageProject(let imageID):
+                case .selectedProject(let imageID):
                     IfLetStore(
                         store.scope(
                             state: SegmentationState.projectToHomeState(
                                 imageID: imageID,
                                 imageLoadable: viewStore.imageItems.first { $0.imageID == imageID }?.imageLoadable,
-                                imageProjects: viewStore.imageProjects
+                                projects: viewStore.projects
                             ),
                             action: HomeAction.segmentation
                         ),
@@ -198,9 +214,9 @@ public struct HomeView<
 //                    accessToken: nil,
 //                    selectedPhotosPickerItem: nil,
 //                    transferredImage: .notLoaded,
-//                    imageProjects: .notLoaded,
+//                    projects: .notLoaded,
 //                    images: [:],
-//                    selectedImageProject: nil,
+//                    selectedProject: nil,
 //                    segmentationResults: [:]
 //                ),
 //                reducer: MockSegmentationReducer()

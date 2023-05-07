@@ -36,7 +36,7 @@ public struct SegmentationView: View {
                                         point: point,
                                         label: .foreground
                                     ),
-                                    imageID: viewStore.imageProject.id
+                                    imageID: viewStore.project.id
                                 )
                             )
                         }
@@ -129,7 +129,7 @@ public struct SegmentationView: View {
                 Button(action: {
                     viewStore.send(
                         .confirmSegmentationResult(
-                            segmentationResult,
+                            maskID: segmentationResult.id,
                             segID: viewStore.segID,
                             accessToken: viewStore.accessToken ?? "invalid"
                         )
@@ -155,7 +155,7 @@ public struct SegmentationView: View {
                 placement: .bottomBar
             ) {
                 Button(action: {
-                    viewStore.send(.undoPointSemantic(imageID: viewStore.imageProject.id))
+                    viewStore.send(.undoPointSemantic(imageID: viewStore.project.id))
                 }) {
                     Image(
                         systemName: "arrow.uturn.backward"
@@ -271,7 +271,7 @@ struct SegmentationView_Previews: PreviewProvider {
                     initialState: SegmentationState(
                         model: SegmentationModel(),
                         accessToken: "",
-                        imageProject: ImageProject(id: 0, fileName: "Example.jpg"),
+                        project: Project(image: ImageDescriptor(id: 0), maskDerivation: nil),
                         image: UIImage(named: "Example", in: .module, with: nil)!
                     ),
                     reducer: EmptyReducer()

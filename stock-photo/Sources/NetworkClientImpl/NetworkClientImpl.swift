@@ -9,7 +9,7 @@ public final class NetworkClientImpl: Sendable {
 //    private static let baseURL = "https://djben--sam-fastapi-app.modal.run"
     private static let authenticateGoogleEndpoint = "\(baseURL)/auth/google"
     private static let authenticateAppleEndpoint = "\(baseURL)/auth/apple"
-    private static let listImageProjectsEndpoint = "\(baseURL)/images"
+    private static let listProjectsEndpoint = "\(baseURL)/projects"
     private static func fetchImageEndpoint(_ imageID: Int) -> String {
         return "\(baseURL)/image/\(imageID)"
     }
@@ -154,8 +154,8 @@ extension NetworkClientImpl: NetworkClient {
         }
     }
 
-    public func listImageProjects(_ request: ListImageProjectsRequest) async throws -> ListImageProjectsResponse {
-        let urlComponents = URLComponents(string: NetworkClientImpl.listImageProjectsEndpoint)!
+    public func listProjects(_ request: ListProjectsRequest) async throws -> ListProjectsResponse {
+        let urlComponents = URLComponents(string: NetworkClientImpl.listProjectsEndpoint)!
         let url = urlComponents.url!
 
         var urlRequest = URLRequest(url: url)
@@ -169,7 +169,7 @@ extension NetworkClientImpl: NetworkClient {
         }
 
         let decoder = JSONDecoder()
-        return try decoder.decode(ListImageProjectsResponse.self, from: data)
+        return try decoder.decode(ListProjectsResponse.self, from: data)
     }
 
     public func fetchImage(_ request: FetchImageRequest) async throws -> UIImage {

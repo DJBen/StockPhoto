@@ -42,37 +42,37 @@ public struct Home<
             case .didCompleteTransferImage(let transferredImage):
                 state.transferredImage = transferredImage
                 return .none
-            case .fetchImageProjects(let accessToken):
-                guard state.imageProjects.isLoading else {
+            case .fetchProjects(let accessToken):
+                guard state.projects.isLoading else {
                     return .none
                 }
                 return .task(
                     operation: {
-                        let imageProjects = try await networkClient.listImageProjects(
-                            ListImageProjectsRequest(
+                        let projects = try await networkClient.listProjects(
+                            ListProjectsRequest(
                                 accessToken: accessToken
                             )
                         )
-                        return .fetchedImageProjects(.loaded(imageProjects.imageProjects), accessToken: accessToken)
+                        return .fetchedProjects(.loaded(projects.projects), accessToken: accessToken)
                     },
                     catch: { error in
-                        return .fetchedImageProjects(.failed(SPError.catch(error)), accessToken: accessToken)
+                        return .fetchedProjects(.failed(SPError.catch(error)), accessToken: accessToken)
                     }
                 )
-            case .fetchedImageProjects(let imageProjects, let accessToken):
-                state.imageProjects = imageProjects
-                guard let imageProjects = imageProjects.value else {
+            case .fetchedProjects(let projects, let accessToken):
+                state.projects = projects
+                guard let projects = projects.value else {
                     return .none
                 }
 
-                for imageProject in imageProjects {
-                    if state.images[imageProject.id] == nil || state.images[imageProject.id] == .notLoaded {
-                        return .send(.fetchImage(imageProject, accessToken: accessToken))
+                for project in projects {
+                    if state.images[project.id] == nil || state.images[project.id] == .notLoaded {
+                        return .send(.fetchImage(project, accessToken: accessToken))
                     }
                 }
 
                 return .none
-            case .fetchImage(let imageProject, let accessToken):
+            case .fetchImage(let project, let accessToken):
                 // Load image project one by one if there's no in-progress loading.
                 if state.images.contains(where: { $1.isLoading }) {
                     return .none
@@ -83,37 +83,37 @@ public struct Home<
                         let imageLoadable = try await networkClient.fetchImage(
                             FetchImageRequest(
                                 accessToken: accessToken,
-                                imageID: imageProject.id
+                                imageID: project.id
                             )
                         )
                         return .fetchedImage(
                             .loaded(imageLoadable),
-                            imageProject: imageProject,
+                            project: project,
                             accessToken: accessToken
                         )
                     },
                     catch: { error in
                         return .fetchedImage(
                             .failed(SPError.catch(error)),
-                            imageProject: imageProject,
+                            project: project,
                             accessToken: accessToken
                         )
                     }
                 )
-            case .fetchedImage(let imageLoadable, let imageProject, let accessToken):
-                state.images[imageProject.id] = imageLoadable
+            case .fetchedImage(let imageLoadable, let project, let accessToken):
+                state.images[project.id] = imageLoadable
 
-                for imageProject in state.imageProjects.value ?? [] {
-                    if state.images[imageProject.id] == nil || state.images[imageProject.id] == .notLoaded {
-                        return .send(.fetchImage(imageProject, accessToken: accessToken))
+                for project in state.projects.value ?? [] {
+                    if state.images[project.id] == nil || state.images[project.id] == .notLoaded {
+                        return .send(.fetchImage(project, accessToken: accessToken))
                     }
                 }
 
                 return .none
-            case .selectImageProjectID(let imageProjectID):
-                state.selectedImageProjectID = imageProjectID
+            case .selectProjectID(let projectID):
+                state.selectedProjectID = projectID
                 return .none
-            case .segmentation(let segmentationAction):
+            case .segmentation(_):
                 return .none
             case .logout:
                 // Handled by the parent
@@ -129,7 +129,7 @@ public struct Home<
 extension HomeState {
     var segmentation: SegmentationState? {
         get {
-            guard let selectedImageProjectID = selectedImageProjectID, let image = images[selectedImageProjectID]?.value, let imageProject = imageProjects.value?.first(where: { $0.id ==  selectedImageProjectID }) else {
+            guard let selectedProjectID = selectedProjectID, let image = images[selectedProjectID]?.value, let project = projects.value?.first(where: { $0.id ==  selectedProjectID }) else {
                 return nil
             }
             guard let accessToken = accessToken else {
@@ -138,7 +138,7 @@ extension HomeState {
             return SegmentationState(
                 model: segmentationModel,
                 accessToken: accessToken,
-                imageProject: imageProject,
+                project: project,
                 image: image
             )
         }

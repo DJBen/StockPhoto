@@ -36,3 +36,4 @@ public enum Loadable<T, ErrorType: Error> {
 }
 
 extension Loadable: Equatable where T: Equatable, ErrorType: Equatable {}
+extension Loadable: Sendable where T: Sendable, ErrorType: Sendable {}

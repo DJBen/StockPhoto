@@ -1,6 +1,6 @@
 import Foundation
 
-public enum SPError: LocalizedError {
+public enum SPError: LocalizedError, Sendable {
     case httpError(HTTPError)
     case unparsableImageData
     case emptyTransferredImage
