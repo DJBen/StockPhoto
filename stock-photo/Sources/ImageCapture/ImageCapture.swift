@@ -1,6 +1,7 @@
 import AVFoundation
 import ComposableArchitecture
 import CoreGraphics
+import StockPhotoFoundation
 import UIKit
 
 public struct ImageCaptureState: Equatable {

@@ -10,7 +10,7 @@ struct DebugView: View {
                 Form {
                     Section(header: Text(verbatim: "Auth testing")) {
                         Button("Wreck access token") {
-                            viewStore.send(.wreckAccessToken)
+                            viewStore.send(.renderAccessTokenInvalid)
                         }
                     }
                 }

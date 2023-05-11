@@ -2,6 +2,7 @@ import ComposableArchitecture
 import Dependencies
 import ImageCapture
 import Navigation
+import StockPhotoFoundation
 import SwiftUI
 
 public struct ImageCaptureView: View {

@@ -4,10 +4,8 @@ extension HomeState {
     static func project(_ appState: StockPhoto.State) -> HomeState {
         HomeState(
             account: appState.login.account,
-            selectedPhotosPickerItem: appState.selectedPhotoPickerItem,
-            transferredImage: appState.transferredImage,
-            projects: appState.projects,
-            images: appState.images,
+            model: appState.homeModel,
+            segmentationModel: appState.segmentationModel,
             selectedProjectID: {
                 for destination in appState.destinations {
                     switch destination {
@@ -18,16 +16,12 @@ extension HomeState {
                     }
                 }
                 return nil
-            }(),
-            segmentationModel: appState.segmentationModel
+            }()
         )
     }
 
     func apply(_ appState: inout StockPhoto.State) {
-        appState.selectedPhotoPickerItem = selectedPhotosPickerItem
-        appState.transferredImage = transferredImage
-        appState.projects = projects
-        appState.images = images
+        appState.homeModel = model
         appState.segmentationModel = segmentationModel
     }
 }

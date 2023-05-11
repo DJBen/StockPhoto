@@ -1,3 +1,5 @@
+import StockPhotoFoundation
+
 public struct PostImageCaptureState: Equatable {
     public var capturedImage: CapturedImage
     public var buttonText: PostImageCaptureButtonText

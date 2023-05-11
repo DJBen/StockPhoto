@@ -1,6 +1,8 @@
 import ComposableArchitecture
 import ImageCapture
 import ImageViewer
+import PreviewAssets
+import StockPhotoFoundation
 import SwiftUI
 
 struct PostImageCaptureView: View {
@@ -74,7 +76,7 @@ struct PostImageCapture_Previews: PreviewProvider {
                 initialState: PostImageCapture.State(
                     capturedImage: CapturedImage(
                         id: UUID(),
-                        image: UIImage(named: "Example2", in: .module, with: nil)!
+                        image: UIImage(named: "Example2", in: .previewAssets, with: nil)!
                     ),
                     buttonText: .retake
                 ),

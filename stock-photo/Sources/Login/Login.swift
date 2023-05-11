@@ -3,7 +3,6 @@ import ComposableArchitecture
 import CustomDump
 import Dispatch
 import KeychainAccess
-import ImageCapture
 import NetworkClient
 import StockPhotoFoundation
 
@@ -27,7 +26,7 @@ public struct Login: ReducerProtocol, Sendable {
 
     public enum Action: Equatable {
         case checkExistingAccessToken
-        case wreckAccessToken
+        case renderAccessTokenInvalid
         case didObtainCredentialFromGoogle(GoogleCredentials)
         case didObtainCredentialFromApple(ASAuthorizationAppleIDCredential)
         case didFailLogin(SPError)
@@ -71,7 +70,7 @@ public struct Login: ReducerProtocol, Sendable {
                         return .didNotFindAccessToken
                     }
                 }
-            case .wreckAccessToken:
+            case .renderAccessTokenInvalid:
                 if let account = state.account {
                     let accessToken = account.accessToken
                     if let dotRange = accessToken.range(of: ".", options: .backwards) {

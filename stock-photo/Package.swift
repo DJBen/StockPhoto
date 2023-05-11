@@ -20,6 +20,7 @@ let package = Package(
         .library(name: "NetworkClient", targets: ["NetworkClient"]),
         .library(name: "NetworkClientImpl", targets: ["NetworkClientImpl"]),
         .library(name: "Navigation", targets: ["Navigation"]),
+        .library(name: "PreviewAssets", targets: ["PreviewAssets"]),
         .library(name: "Segmentation", targets: ["Segmentation"]),
         .library(name: "SegmentationImpl", targets: ["SegmentationImpl"]),
         .library(name: "StockPhotoFoundation", targets: ["StockPhotoFoundation"]),
@@ -93,7 +94,9 @@ let package = Package(
             dependencies: [
                 .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
                 "NetworkClient",
+                "Segmentation",
                 "StockPhotoFoundation",
+                "StockPhotoUI",
             ]
         ),
         .target(
@@ -101,7 +104,10 @@ let package = Package(
             dependencies: [
                 .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
                 "Home",
+                "ImageViewer",
                 "Navigation",
+                "Nuke",
+                "PreviewAssets",
                 "Segmentation",
                 "UIImageExtensions",
             ]
@@ -110,6 +116,7 @@ let package = Package(
             name: "ImageCapture",
             dependencies: [
                 .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+                "StockPhotoFoundation",
             ]
         ),
         .target(
@@ -120,6 +127,8 @@ let package = Package(
                 "ImageCapture",
                 "ImageViewer",
                 "Navigation",
+                "PreviewAssets",
+                "StockPhotoFoundation",
             ],
             resources: [
                 .process("Resources"),
@@ -149,7 +158,7 @@ let package = Package(
             name: "NetworkClientImpl",
             dependencies: [
                 "NetworkClient",
-                .product(name: "Nuke", package: "Nuke"),
+                "Nuke",
                 "StockPhotoFoundation",
             ]
         ),
@@ -158,6 +167,11 @@ let package = Package(
             dependencies: [
                 "ImageCapture",
                 "Home",
+            ]
+        ),
+        .target(
+            name: "PreviewAssets",
+            dependencies: [
             ]
         ),
         .target(
@@ -171,7 +185,10 @@ let package = Package(
             dependencies: [
                 "ImageViewer",
                 "NetworkClient",
+                "PreviewAssets",
+                "Segmentation",
                 "StockPhotoFoundation",
+                "StockPhotoUI",
                 "UIImageExtensions",
             ]
         ),

@@ -4,6 +4,7 @@ import Navigation
 import PhotosUI
 import Segmentation
 import StockPhotoFoundation
+import StockPhotoUI
 import SwiftUI
 
 public struct HomeView<
@@ -16,7 +17,8 @@ public struct HomeView<
     struct ViewState: Equatable {
         var account: Account?
         var selectedPhotosPickerItem: PhotosPickerItem?
-        var transferredImage: Loadable<Image, SPError>
+        var transferredImage: Loadable<TransferredImage, SPError>
+        var uploadState: UploadFileState?
         var projects: Loadable<[Project], SPError>
         var selectedProjectID: Int?
 
@@ -32,6 +34,7 @@ public struct HomeView<
                 account: homeState.account,
                 selectedPhotosPickerItem: homeState.selectedPhotosPickerItem,
                 transferredImage: homeState.transferredImage,
+                uploadState: homeState.uploadState,
                 projects: homeState.projects,
                 selectedProjectID: homeState.selectedProjectID,
                 imageItems: homeState.projects.value?.map { project in
@@ -149,6 +152,7 @@ public struct HomeView<
                 }
             }
             .navigationTitle("Projects")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(
@@ -179,6 +183,25 @@ public struct HomeView<
                 viewStore.send(
                     .fetchProjects(account: newAccount)
                 )
+            }
+            .fullScreenCover(
+                item: Binding<UploadFileState?>(
+                    get: {
+                        viewStore.uploadState
+                    },
+                    set: { _ in }
+                )
+            ) { uploadFileState in
+                TranslucentFullScreenCover {
+                    FileUploadView(
+                        image: uploadFileState.image,
+                        totalBytesSent: uploadFileState.totalByteSent ?? 0,
+                        totalBytesExpectedToSend: uploadFileState.totalBytesExpectedToSend ?? 0,
+                        onCancel: {
+                            viewStore.send(.cancelUpload)
+                        }
+                    )
+                }
             }
             .navigationDestination(for: StockPhotoDestination.self) { destination in
                 switch destination {

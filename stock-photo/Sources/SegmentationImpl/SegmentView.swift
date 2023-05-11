@@ -1,8 +1,10 @@
 import ComposableArchitecture
 import ImageViewer
 import PhotosUI
+import PreviewAssets
 import Segmentation
 import StockPhotoFoundation
+import StockPhotoUI
 import SwiftUI
 
 public struct SegmentationView: View {
@@ -74,8 +76,25 @@ public struct SegmentationView: View {
                         set: { _ in }
                     )
                 ) {
-                    TranslucentFullScreenCover(
-                    )
+                    TranslucentFullScreenCover {
+                        ProgressView {
+                            VStack(spacing: 8) {
+                                Text(
+                                    "Figuring out the contour...",
+                                    comment: "The loading text of the segmentation request."
+                                )
+                                .multilineTextAlignment(.center)
+
+                                Text(
+                                    "It may take extra long if our server boots from cold start",
+                                    comment: "The secondary loading text of the segmentation request."
+                                )
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                            }
+                            .padding(.horizontal, 16)
+                        }
+                    }
                 }
                 .alert(
                     isPresented: viewStore.binding(
@@ -232,43 +251,6 @@ struct ForegroundOverlay: Shape {
     }
 }
 
-struct TranslucentFullScreenCover: View {
-    var body: some View {
-        ProgressView {
-            VStack(spacing: 8) {
-                Text(
-                    "Figuring out the contour...",
-                    comment: "The loading text of the segmentation request."
-                )
-                .multilineTextAlignment(.center)
-
-                Text(
-                    "It may take extra long if our server boots from cold start",
-                    comment: "The secondary loading text of the segmentation request."
-                )
-                .foregroundColor(.secondary)
-                .font(.caption)
-            }
-            .padding(.horizontal, 16)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(BackgroundBlurView())
-        .edgesIgnoringSafeArea(.all)
-    }
-}
-
-struct BackgroundBlurView: UIViewRepresentable {
-    func makeUIView(context: Context) -> UIView {
-        let view = UIVisualEffectView(effect: UIBlurEffect(style: .systemThinMaterial))
-        DispatchQueue.main.async {
-            view.superview?.superview?.backgroundColor = .clear
-        }
-        return view
-    }
-
-    func updateUIView(_ uiView: UIView, context: Context) {}
-}
-
 struct SegmentationView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationStack {
@@ -279,7 +261,7 @@ struct SegmentationView_Previews: PreviewProvider {
                         account: Account(accessToken: "", userID: ""),
                         project: Project(image: ImageDescriptor(id: 0), maskDerivation: nil),
                         projectImages: ProjectImages(
-                            image: UIImage(named: "Example", in: .module, with: nil)!,
+                            image: UIImage(named: "Example", in: .previewAssets, with: nil)!,
                             maskedImage: nil
                         )
                     ),

@@ -106,7 +106,7 @@ public struct SegmentationState: Equatable {
     }
 }
 
-public enum SegmentationAction: Equatable {
+public enum SegmentationAction: Equatable, Sendable {
     case undoPointSemantic(imageID: Int)
     case addPointSemantic(PointSemantic, imageID: Int)
     case discardSegmentedImage(SegmentationIdentifier)

@@ -4,7 +4,7 @@ import Nuke
 import StockPhotoFoundation
 import UIKit
 
-public final class NetworkClientImpl: Sendable {
+public final class NetworkClientImpl: NSObject, Sendable {
     private static let baseURL = "https://djben--sam-fastapi-app-dev.modal.run"
 //    private static let baseURL = "https://djben--sam-fastapi-app.modal.run"
     private static let authenticateGoogleEndpoint = "\(baseURL)/auth/google"
@@ -15,6 +15,8 @@ public final class NetworkClientImpl: Sendable {
     }
     private static let segmentEndpoint = "\(baseURL)/segment_image"
     private static let confirmMaskEndpoint = "\(baseURL)/confirm_mask"
+    private var continuations: [Int: AsyncThrowingStream<UploadFileUpdate, Error>.Continuation] = [:]
+    private let continuationQueue = DispatchQueue(label: "sihao.DJBen.StockPhoto.continuationQueue", attributes: .concurrent)
 
     let dataCache: DataCaching
     let imageEncoder: ImageEncoders.Default = .init()
@@ -24,6 +26,7 @@ public final class NetworkClientImpl: Sendable {
         dataCache: DataCaching
     ) {
         self.dataCache = dataCache
+        super.init()
     }
 }
 
@@ -96,12 +99,11 @@ extension NetworkClientImpl: NetworkClient {
         return try decoder.decode(AuthenticateAppleResponse.self, from: data)
     }
 
-    public func uploadImage(_ request: UploadImageRequest) async -> AsyncThrowingStream<UploadFileUpdate, Error> {
-        AsyncThrowingStream { (continuation: AsyncThrowingStream<UploadFileUpdate, Error>.Continuation) in
-
+    public func uploadImage(_ request: UploadImageRequest) -> AsyncThrowingStream<UploadFileUpdate, Error> {
+        AsyncThrowingStream { continuation in
             let url = URL(string: "/image", relativeTo: URL(string: NetworkClientImpl.baseURL)!)!
             var urlRequest = URLRequest(url: url)
-            urlRequest.httpMethod = "POST"
+            urlRequest.httpMethod = "PUT"
             urlRequest.setValue("Bearer \(request.account.accessToken)", forHTTPHeaderField: "Authorization")
 
             let boundary = UUID().uuidString
@@ -111,7 +113,10 @@ extension NetworkClientImpl: NetworkClient {
             let httpBody = NetworkClientImpl.createMultipartData(for: request, boundary: boundary)
             urlRequest.httpBody = httpBody
 
-            let task = URLSession.shared.dataTask(with: urlRequest) { data, response, error in
+            let sessionConfiguration = URLSessionConfiguration.default
+            let session = URLSession(configuration: sessionConfiguration, delegate: self, delegateQueue: nil)
+
+            let task = session.uploadTask(with: urlRequest, from: httpBody) { data, response, error in
                 if let error = error {
                     continuation.finish(throwing: error)
                 } else if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
@@ -124,7 +129,9 @@ extension NetworkClientImpl: NetworkClient {
                     do {
                         let decoder = JSONDecoder()
                         let uploadResponse = try decoder.decode(UploadImageResponse.self, from: data)
-                        continuation.yield(.completed(uploadResponse))
+                        continuation.yield(
+                            .completed(imageID: uploadResponse.imageID)
+                        )
                         continuation.finish()
                     } catch {
                         continuation.finish(throwing: error)
@@ -135,21 +142,19 @@ extension NetworkClientImpl: NetworkClient {
                 }
             }
 
-            let progress = task.progress
-            progress.completedUnitCount = 0
-
-            DispatchQueue.global(qos: .background).async {
-                while !progress.isFinished && !progress.isCancelled {
-                    let update = UploadFileUpdate.inProgress(bytesSent: progress.completedUnitCount, totalBytesSent: progress.completedUnitCount, totalBytesExpectedToSend: progress.totalUnitCount)
-                    continuation.yield(update)
-                    Thread.sleep(forTimeInterval: 0.1)
-                }
-            }
-
             task.resume()
+
+            // Store the continuation in the dictionary
+            continuationQueue.async(flags: .barrier) {
+                self.continuations[task.taskIdentifier] = continuation
+            }
 
             continuation.onTermination = { @Sendable termination in
                 task.cancel()
+                // Remove the continuation from the dictionary when the task is terminated
+                self.continuationQueue.async(flags: .barrier) {
+                    self.continuations[task.taskIdentifier] = nil
+                }
             }
         }
     }
@@ -253,15 +258,14 @@ extension NetworkClientImpl: NetworkClient {
 
         // Add image
         body.append(string: boundaryPrefix)
-        body.append(string: "Content-Disposition: form-data; name=\"image\"\r\n")
+        body.append(string: "Content-Disposition: form-data; name=\"image\"; filename=\"image\"\r\n")
         body.append(string: "Content-Type: \(request.mimeType)\r\n\r\n")
         body.append(request.image)
         body.append(string: "\r\n")
 
-        // Add overwrite
         body.append(string: boundaryPrefix)
-        body.append(string: "Content-Disposition: form-data; name=\"overwrite\"\r\n\r\n")
-        body.append(string: "\(request.overwrite)")
+        body.append(string: "Content-Disposition: form-data; name=\"is_test\"\r\n\r\n")
+        body.append(string: "\(true)")
         body.append(string: "\r\n")
 
         body.append(string: "--\(boundary)--")
@@ -283,6 +287,17 @@ extension NetworkClientImpl: NetworkClient {
             throw HTTPError.internalServerError
         default:
             throw HTTPError.unknownError
+        }
+    }
+}
+
+extension NetworkClientImpl: URLSessionTaskDelegate {
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
+        continuationQueue.sync {
+            if let continuation = continuations[task.taskIdentifier] {
+                let update = UploadFileUpdate.inProgress(bytesSent: bytesSent, totalBytesSent: totalBytesSent, totalBytesExpectedToSend: totalBytesExpectedToSend)
+                continuation.yield(update)
+            }
         }
     }
 }

@@ -19,12 +19,9 @@ public struct StockPhoto: ReducerProtocol, Sendable {
     public struct State: Equatable {
         public var destinations: [StockPhotoDestination]
         public var login: Login.State
+        public var homeModel: HomeModel
         public var debugModel: DebugModel
         public var imageCapture: ImageCaptureState
-        public var selectedPhotoPickerItem: PhotosPickerItem?
-        public var transferredImage: Loadable<Image, SPError>
-        public var projects: Loadable<[Project], SPError>
-        public var images: [Int: Loadable<ProjectImages, SPError>]
         public var segmentationModel: SegmentationModel
         public var displayingErrors: [SPError]
         
@@ -51,10 +48,7 @@ public struct StockPhoto: ReducerProtocol, Sendable {
             self.login = Login.State()
             self.debugModel = DebugModel()
             self.imageCapture = ImageCaptureState()
-            self.selectedPhotoPickerItem = nil
-            self.transferredImage = .notLoaded
-            self.projects = .loading
-            self.images = [:]
+            self.homeModel = HomeModel()
             self.segmentationModel = SegmentationModel()
             self.displayingErrors = []
         }
@@ -136,6 +130,23 @@ public struct StockPhoto: ReducerProtocol, Sendable {
                     return .none
                 }
 
+                func handleResultError<T>(_ result: Result<T, SPError>) -> EffectPublisher<StockPhoto.Action, Never> {
+                    switch result {
+                    case .failure(let error):
+                        // If backend returns unauthorized, it is likely that the access token has expired. Clear and re-login.
+                        if error.isUnauthorizedError {
+                            state.login.isShowingLoginSheet = true
+                            return .send(.login(.resetAccessToken))
+                        } else {
+                            state.displayingErrors.append(error)
+                        }
+                    case .success(_):
+                        break
+                    }
+
+                    return .none
+                }
+
                 switch action {
                 case .navigationChanged(let destinations):
                     state.destinations = destinations
@@ -165,6 +176,8 @@ public struct StockPhoto: ReducerProtocol, Sendable {
                         }
                     case .logout:
                         return .send(.login(.resetAccessToken))
+                    case .updateUploadProgress(let uploadFileUpdate, account: _):
+                        return handleResultError(uploadFileUpdate)
                     default:
                         return .none
                     }
@@ -184,8 +197,8 @@ public struct StockPhoto: ReducerProtocol, Sendable {
                     switch debugAction {
                     case .setPresentDebugSheet(let isPresenting):
                         state.debug.isPresentingDebugSheet = isPresenting
-                    case .wreckAccessToken:
-                        return .send(.login(.wreckAccessToken))
+                    case .renderAccessTokenInvalid:
+                        return .send(.login(.renderAccessTokenInvalid))
                     }
                     return .none
                 case .dismissError:

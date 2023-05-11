@@ -33,5 +33,5 @@ public enum DebugAction: Equatable {
     /// Make access token an invalid one, if it exists.
     ///
     /// This is useful for testing re-authentication flow.
-    case wreckAccessToken
+    case renderAccessTokenInvalid
 }

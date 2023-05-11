@@ -36,19 +36,100 @@ public struct Home<
                 state.transferredImage = .loading
                 return .task(
                     operation: {
-                        let transferredImage = try await item.loadTransferable(type: Image.self)
-                        guard let transferredImage = transferredImage else {
+                        let imageData = try await item.loadTransferable(type: Data.self)
+                        let image = UIImage(data: imageData!)
+
+                        guard let resizedImageData = image?.resizedImageBelowSizeLimit(2 * 1024 * 1024)?.jpegData(compressionQuality: 1.0), let contentType = item.supportedContentTypes.first else {
                             throw SPError.emptyTransferredImage
                         }
-                        return .didCompleteTransferImage(.loaded(transferredImage))
+                        return .didCompleteTransferImage(
+                            .loaded(TransferredImage(imageData: resizedImageData, mimeType: contentType))
+                        )
                     },
                     catch: { error in
-                        return .didCompleteTransferImage(.failed(SPError.catch(error)))
+                        return .didCompleteTransferImage(
+                            .failed(SPError.catch(error))
+                        )
                     }
                 )
+
             case .didCompleteTransferImage(let transferredImage):
                 state.transferredImage = transferredImage
+
+                if let image = transferredImage.value, let account = state.account {
+                    return .send(.uploadImage(image, account: account))
+                }
                 return .none
+
+            case .uploadImage(let image, let account):
+                let id = UUID().uuidString
+                state.uploadState = UploadFileState(
+                    id: id,
+                    image: UIImage(data: image.imageData)!
+                )
+                return .run(
+                    operation: { send in
+                        let stream = networkClient.uploadImage(
+                            UploadImageRequest(
+                                id: id,
+                                account: account,
+                                image: image.imageData,
+                                mimeType: image.mimeType.preferredMIMEType ?? "image/jpeg"
+                            )
+                        )
+                        for try await update in stream {
+                            await send(
+                                .updateUploadProgress(
+                                    .success(update),
+                                    account: account
+                                )
+                            )
+                        }
+                    },
+                    catch: { error, send in
+                        await send(
+                            .updateUploadProgress(
+                                .failure(SPError.catch(error)),
+                                account: account
+                            )
+                        )
+                    }
+                )
+                .cancellable(id: id)
+
+            case .updateUploadProgress(let fileUpdate, let account):
+                state.transferredImage = .notLoaded
+
+                switch fileUpdate {
+                case .success(let update):
+                    withAnimation {
+                        state.uploadState?.update = update
+                    }
+
+                    switch update {
+                    case .completed(imageID: _):
+                        state.uploadState = nil
+
+                        return .send(.refreshProjects(account: account))
+                    case .inProgress(bytesSent: _, totalBytesSent: _, totalBytesExpectedToSend: _):
+                        break
+                    }
+                case .failure(_):
+                    state.transferredImage = .notLoaded
+                    state.uploadState = nil
+                }
+
+                return .none
+
+            case .cancelUpload:
+                guard let uploadState = state.uploadState else {
+                    return .none
+                }
+
+                state.uploadState = nil
+                state.transferredImage = .notLoaded
+
+                return .cancel(id: uploadState.id)
             case .fetchProjects(let account):
                 guard state.projects.isLoading else {
                     return .none
@@ -66,12 +147,19 @@ public struct Home<
                         return .fetchedProjects(.failed(SPError.catch(error)), account: account)
                     }
                 )
+
             case .retryFetchingProjects(let account):
                 guard state.projects.error != nil else {
                     return .none
                 }
                 state.projects = .loading
                 return .send(.fetchProjects(account: account))
+
+            case .refreshProjects(let account):
+                state.projects.reload()
+
+                return .send(.fetchProjects(account: account))
+
             case .fetchedProjects(let projects, let account):
                 state.projects = projects
                 guard let projects = projects.value else {
@@ -85,6 +173,11 @@ public struct Home<
                 }
 
                 return .none
+
+            case .selectProjectID(let projectID):
+                state.selectedProjectID = projectID
+                return .none
+
             case .fetchImage(let project, let account):
                 // Load image project one by one if there's no in-progress loading.
                 if state.images.contains(where: { $1.isLoading }) {
@@ -143,9 +236,6 @@ public struct Home<
                 }
 
                 return .none
-            case .selectProjectID(let projectID):
-                state.selectedProjectID = projectID
-                return .none
             case .segmentation(_):
                 return .none
             case .logout:
@@ -162,7 +252,7 @@ public struct Home<
 extension HomeState {
     var segmentation: SegmentationState? {
         get {
-            guard let selectedProjectID = selectedProjectID, let projectImages = images[selectedProjectID]?.value, let project = projects.value?.first(where: { $0.id ==  selectedProjectID }) else {
+            guard let selectedProjectID = selectedProjectID, let projectImages = model.images[selectedProjectID]?.value, let project = model.projects.value?.first(where: { $0.id ==  selectedProjectID }) else {
                 return nil
             }
             guard let account = account else {

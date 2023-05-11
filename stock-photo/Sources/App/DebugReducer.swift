@@ -9,9 +9,8 @@ public struct Debug: ReducerProtocol, Sendable {
             case .setPresentDebugSheet(let isPresentingDebugSheet):
                 state.isPresentingDebugSheet = isPresentingDebugSheet
                 return .none
-            case .wreckAccessToken:
-                // Handled by parent
-                return .none
+            case .renderAccessTokenInvalid:
+                return .send(.setPresentDebugSheet(false))
             }
         }
     }

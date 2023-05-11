@@ -1,6 +1,5 @@
 import ImageCapture
-import Home
-import Foundation
+import StockPhotoFoundation
 import UIKit
 
 /// The navigation destination identifier

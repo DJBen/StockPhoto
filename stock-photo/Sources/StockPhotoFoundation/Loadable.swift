@@ -9,7 +9,7 @@ public enum Loadable<T, ErrorType: Error> {
 
     public var isLoading: Bool {
         switch self {
-        case .loading:
+        case .loading, .reloading(_):
             return true
         default:
             return false
@@ -31,6 +31,15 @@ public enum Loadable<T, ErrorType: Error> {
             return error
         default:
             return nil
+        }
+    }
+
+    public mutating func reload() {
+        switch self {
+        case .loaded(let value):
+            self = .reloading(value)
+        default:
+            return
         }
     }
 }
