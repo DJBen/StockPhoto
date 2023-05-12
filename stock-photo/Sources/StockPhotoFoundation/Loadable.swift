@@ -16,6 +16,18 @@ public enum Loadable<T, ErrorType: Error> {
         }
     }
 
+    /// Whether the loadable state is loading for the first time, without a content.
+    ///
+    /// This value is useful when deciding whether to display a loading visual placeholder.
+    public var isInitiallyLoading: Bool {
+        switch self {
+        case .loading:
+            return true
+        default:
+            return false
+        }
+    }
+
     public var value: T? {
         switch self {
         case .loaded(let value), .reloading(let value):

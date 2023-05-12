@@ -27,6 +27,7 @@ public struct Segmentation: ReducerProtocol, Sendable {
                 state.pointSemantics[imageID]?.append(pointSemantic)
                 return .none
             case .discardSegmentedImage(let segID):
+                state.segmentationResults[segID] = nil
                 state.segmentedImage[segID] = nil
                 return .none
             case .requestSegmentation(

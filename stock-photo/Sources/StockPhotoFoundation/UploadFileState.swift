@@ -3,7 +3,6 @@ import UIKit
 
 public enum UploadFileUpdate: Equatable, Sendable {
     case inProgress(
-        bytesSent: Int64,
         totalBytesSent: Int64,
         totalBytesExpectedToSend: Int64
     )
@@ -30,7 +29,7 @@ public struct UploadFileState: Equatable, Sendable, Identifiable {
 
     public var totalByteSent: Int64? {
         switch update {
-        case .inProgress(_, let totalBytesSent, _):
+        case .inProgress(let totalBytesSent, _):
             return totalBytesSent
         default:
             return 0
@@ -39,7 +38,7 @@ public struct UploadFileState: Equatable, Sendable, Identifiable {
 
     public var totalBytesExpectedToSend: Int64? {
         switch update {
-        case .inProgress(_, _, let totalBytesExpectedToSend):
+        case .inProgress(_, let totalBytesExpectedToSend):
             return totalBytesExpectedToSend
         default:
             return 0

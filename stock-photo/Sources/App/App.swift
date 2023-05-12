@@ -46,7 +46,13 @@ public struct StockPhoto: ReducerProtocol, Sendable {
         public init() {
             self.destinations = []
             self.login = Login.State()
-            self.debugModel = DebugModel()
+            self.debugModel = DebugModel(
+                endpoint: Endpoint(
+                    rawValue: UserDefaults.standard.integer(
+                        forKey: "debug.endpoint"
+                    )
+                ) ?? .development
+            )
             self.imageCapture = ImageCaptureState()
             self.homeModel = HomeModel()
             self.segmentationModel = SegmentationModel()
@@ -79,15 +85,21 @@ public struct StockPhoto: ReducerProtocol, Sendable {
         case dismissError
     }
 
-    private let networkClient: NetworkClient
+    private let networkClient: NetworkClient & NetworkEndpointAssignable
     private let dataCache: DataCaching
 
     public init(
-        networkClient: NetworkClient,
+        networkClient: NetworkClient & NetworkEndpointAssignable,
         dataCache: DataCaching
     ) {
         self.networkClient = networkClient
         self.dataCache = dataCache
+
+        self.networkClient.endpoint = Endpoint(
+            rawValue: UserDefaults.standard.integer(
+                forKey: "debug.endpoint"
+            )
+        ) ?? .development
     }
 
     public var body: some ReducerProtocol<State, Action> {
@@ -199,6 +211,9 @@ public struct StockPhoto: ReducerProtocol, Sendable {
                         state.debug.isPresentingDebugSheet = isPresenting
                     case .renderAccessTokenInvalid:
                         return .send(.login(.renderAccessTokenInvalid))
+                    case .setEndpoint(let endpoint):
+                        networkClient.endpoint = endpoint
+                        return .none
                     }
                     return .none
                 case .dismissError:

@@ -111,7 +111,7 @@ public struct Home<
                         state.uploadState = nil
 
                         return .send(.refreshProjects(account: account))
-                    case .inProgress(bytesSent: _, totalBytesSent: _, totalBytesExpectedToSend: _):
+                    case .inProgress(totalBytesSent: _, totalBytesExpectedToSend: _):
                         break
                     }
                 case .failure(_):
@@ -130,6 +130,40 @@ public struct Home<
                 state.transferredImage = .notLoaded
 
                 return .cancel(id: uploadState.id)
+
+            case .deleteImage(imageID: let imageID, account: let account):
+                return .task(
+                    operation: {
+                        let response = try await networkClient.deleteImage(
+                            DeleteImageRequest(account: account, imageID: imageID)
+                        )
+                        return .didCompleteDeleteImage(
+                            .loaded(response.imageID),
+                            account: account
+                        )
+                    },
+                    catch: { error in
+                        .didCompleteDeleteImage(
+                            .failed(SPError.catch(error)),
+                            account: account
+                        )
+                    }
+                )
+
+            case .didCompleteDeleteImage(let deletingImageID, let account):
+                state.deletingImageID = deletingImageID
+
+                if let deletedImageID = state.deletingImageID.value {
+                    // Delete the projects locally
+                    state.projects = state.projects.map { projects in
+                        projects.filter { $0.id != deletedImageID }
+                    }
+
+                    return .send(.refreshProjects(account: account))
+                }
+
+                return .none
+
             case .fetchProjects(let account):
                 guard state.projects.isLoading else {
                     return .none

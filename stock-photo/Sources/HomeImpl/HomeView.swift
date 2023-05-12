@@ -61,7 +61,7 @@ public struct HomeView<
             observe: ViewState.project
         ) { viewStore in
             VStack {
-                if viewStore.projects.isLoading {
+                if viewStore.projects.isInitiallyLoading {
                     Spacer()
                     ProgressView {
                         Text(
@@ -113,6 +113,19 @@ public struct HomeView<
                                 }
                                 .frame(maxHeight: 100)
                             }
+                        }
+                        .onDelete { indexSet in
+                            // Single selection
+                            guard let firstItemIndex = indexSet.first else {
+                                return
+                            }
+                            guard let account = viewStore.account else {
+                                return
+                            }
+                            let imageID = viewStore.imageItems[firstItemIndex].imageID
+                            viewStore.send(
+                                .deleteImage(imageID: imageID, account: account)
+                            )
                         }
                     }
                     .listStyle(.plain)

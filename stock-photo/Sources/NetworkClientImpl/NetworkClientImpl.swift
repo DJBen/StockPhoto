@@ -5,22 +5,48 @@ import StockPhotoFoundation
 import UIKit
 
 public final class NetworkClientImpl: NSObject, Sendable {
-    private static let baseURL = "https://djben--sam-fastapi-app-dev.modal.run"
-//    private static let baseURL = "https://djben--sam-fastapi-app.modal.run"
-    private static let authenticateGoogleEndpoint = "\(baseURL)/auth/google"
-    private static let authenticateAppleEndpoint = "\(baseURL)/auth/apple"
-    private static let listProjectsEndpoint = "\(baseURL)/projects"
-    private static func fetchImageEndpoint(_ imageID: Int) -> String {
+    private var baseURL: String {
+        switch endpoint {
+        case .development:
+            return "https://djben--sam-fastapi-app-dev.modal.run"
+        case .production:
+            return "https://djben--sam-fastapi-app.modal.run"
+        }
+    }
+
+    private var authenticateGoogleEndpoint: String {
+        "\(baseURL)/auth/google"
+    }
+    private var authenticateAppleEndpoint: String {
+        "\(baseURL)/auth/apple"
+    }
+    private var listProjectsEndpoint: String {
+        "\(baseURL)/projects"
+    }
+    private var uploadImageEndpoint: String {
+        return "\(baseURL)/image"
+    }
+    private func fetchImageEndpoint(_ imageID: Int) -> String {
         return "\(baseURL)/image/\(imageID)"
     }
-    private static let segmentEndpoint = "\(baseURL)/segment_image"
-    private static let confirmMaskEndpoint = "\(baseURL)/confirm_mask"
+    private func deleteImageEndpoint(_ imageID: Int) -> String {
+        return "\(baseURL)/image/\(imageID)"
+    }
+    private var segmentEndpoint: String {
+        "\(baseURL)/segment_image"
+    }
+    private var confirmMaskEndpoint: String {
+        "\(baseURL)/confirm_mask"
+    }
+
     private var continuations: [Int: AsyncThrowingStream<UploadFileUpdate, Error>.Continuation] = [:]
     private let continuationQueue = DispatchQueue(label: "sihao.DJBen.StockPhoto.continuationQueue", attributes: .concurrent)
 
     let dataCache: DataCaching
     let imageEncoder: ImageEncoders.Default = .init()
     let imageDecoder: ImageDecoders.Default = .init()
+
+    public var endpoint: Endpoint = .development
 
     public init(
         dataCache: DataCaching
@@ -32,7 +58,7 @@ public final class NetworkClientImpl: NSObject, Sendable {
 
 extension NetworkClientImpl: NetworkClient {
     public func authenticateGoogle(_ request: AuthenticateGoogleRequest) async throws -> AuthenticateGoogleResponse {
-        var urlComponents = URLComponents(string: NetworkClientImpl.authenticateGoogleEndpoint)!
+        var urlComponents = URLComponents(string: authenticateGoogleEndpoint)!
 
         urlComponents.queryItems = [
             URLQueryItem(name: "code", value: request.code)
@@ -66,7 +92,7 @@ extension NetworkClientImpl: NetworkClient {
     }
 
     public func authenticateApple(_ request: AuthenticateAppleRequest) async throws -> AuthenticateAppleResponse {
-        var urlComponents = URLComponents(string: NetworkClientImpl.authenticateAppleEndpoint)!
+        var urlComponents = URLComponents(string: authenticateAppleEndpoint)!
 
         urlComponents.queryItems = [
             URLQueryItem(name: "code", value: request.code)
@@ -101,7 +127,7 @@ extension NetworkClientImpl: NetworkClient {
 
     public func uploadImage(_ request: UploadImageRequest) -> AsyncThrowingStream<UploadFileUpdate, Error> {
         AsyncThrowingStream { continuation in
-            let url = URL(string: "/image", relativeTo: URL(string: NetworkClientImpl.baseURL)!)!
+            let url = URL(string: uploadImageEndpoint)!
             var urlRequest = URLRequest(url: url)
             urlRequest.httpMethod = "PUT"
             urlRequest.setValue("Bearer \(request.account.accessToken)", forHTTPHeaderField: "Authorization")
@@ -160,7 +186,7 @@ extension NetworkClientImpl: NetworkClient {
     }
 
     public func listProjects(_ request: ListProjectsRequest) async throws -> ListProjectsResponse {
-        let urlComponents = URLComponents(string: NetworkClientImpl.listProjectsEndpoint)!
+        let urlComponents = URLComponents(string: listProjectsEndpoint)!
         let url = urlComponents.url!
 
         var urlRequest = URLRequest(url: url)
@@ -183,7 +209,7 @@ extension NetworkClientImpl: NetworkClient {
             return try imageDecoder.decode(imageData).image
         }
 
-        let urlComponents = URLComponents(string: NetworkClientImpl.fetchImageEndpoint(request.imageID))!
+        let urlComponents = URLComponents(string: fetchImageEndpoint(request.imageID))!
         let url = urlComponents.url!
 
         var urlRequest = URLRequest(url: url)
@@ -207,8 +233,26 @@ extension NetworkClientImpl: NetworkClient {
         return image
     }
 
+    public func deleteImage(_ request: DeleteImageRequest) async throws -> DeleteImageResponse {
+        let urlComponents = URLComponents(string: deleteImageEndpoint(request.imageID))!
+        let url = urlComponents.url!
+
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = "DELETE"
+        urlRequest.setValue("Bearer \(request.account.accessToken)", forHTTPHeaderField: "Authorization")
+
+        let (data, response) = try await URLSession.shared.data(for: urlRequest)
+
+        if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
+            try NetworkClientImpl.handleHTTPError(statusCode: httpResponse.statusCode)
+        }
+
+        let decoder = JSONDecoder()
+        return try decoder.decode(DeleteImageResponse.self, from: data)
+    }
+
     public func segment(_ request: SegmentRequest) async throws -> SegmentResponse {
-        let urlComponents = URLComponents(string: NetworkClientImpl.segmentEndpoint)!
+        let urlComponents = URLComponents(string: segmentEndpoint)!
         let url = urlComponents.url!
 
         var urlRequest = URLRequest(url: url)
@@ -230,7 +274,7 @@ extension NetworkClientImpl: NetworkClient {
     }
 
     public func confirmMask(_ request: ConfirmMaskRequest) async throws -> ConfirmMaskResponse {
-        let urlComponents = URLComponents(string: NetworkClientImpl.confirmMaskEndpoint)!
+        let urlComponents = URLComponents(string: confirmMaskEndpoint)!
         let url = urlComponents.url!
 
         var urlRequest = URLRequest(url: url)
@@ -265,7 +309,7 @@ extension NetworkClientImpl: NetworkClient {
 
         body.append(string: boundaryPrefix)
         body.append(string: "Content-Disposition: form-data; name=\"is_test\"\r\n\r\n")
-        body.append(string: "\(true)")
+        body.append(string: "\(false)")
         body.append(string: "\r\n")
 
         body.append(string: "--\(boundary)--")
@@ -295,7 +339,10 @@ extension NetworkClientImpl: URLSessionTaskDelegate {
     public func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
         continuationQueue.sync {
             if let continuation = continuations[task.taskIdentifier] {
-                let update = UploadFileUpdate.inProgress(bytesSent: bytesSent, totalBytesSent: totalBytesSent, totalBytesExpectedToSend: totalBytesExpectedToSend)
+                let update = UploadFileUpdate.inProgress(
+                    totalBytesSent: totalBytesSent,
+                    totalBytesExpectedToSend: totalBytesExpectedToSend
+                )
                 continuation.yield(update)
             }
         }

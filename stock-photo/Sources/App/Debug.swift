@@ -2,6 +2,7 @@ import StockPhotoFoundation
 
 public struct DebugModel: Equatable {
     public var isPresentingDebugSheet: Bool = false
+    public var endpoint: Endpoint = .development
 }
 
 @dynamicMemberLookup
@@ -34,4 +35,6 @@ public enum DebugAction: Equatable {
     ///
     /// This is useful for testing re-authentication flow.
     case renderAccessTokenInvalid
+
+    case setEndpoint(Endpoint)
 }
