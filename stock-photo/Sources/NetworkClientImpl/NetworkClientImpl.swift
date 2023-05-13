@@ -234,7 +234,8 @@ extension NetworkClientImpl: NetworkClient {
     }
 
     public func deleteImage(_ request: DeleteImageRequest) async throws -> DeleteImageResponse {
-        let urlComponents = URLComponents(string: deleteImageEndpoint(request.imageID))!
+        var urlComponents = URLComponents(string: deleteImageEndpoint(request.imageID))!
+        urlComponents.queryItems = [URLQueryItem(name: "is_soft_delete", value: request.isSoftDelete ? "1" : "0")]
         let url = urlComponents.url!
 
         var urlRequest = URLRequest(url: url)
