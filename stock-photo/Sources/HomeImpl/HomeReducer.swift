@@ -37,7 +37,7 @@ public struct Home<
                 return .task(
                     operation: {
                         let imageData = try await item.loadTransferable(type: Data.self)
-                        let image = UIImage(data: imageData!)
+                        let image = UIImage(data: imageData!)?.fixingImageOrientation()
 
                         guard let resizedImageData = image?.resizedImageBelowSizeLimit(2 * 1024 * 1024)?.jpegData(compressionQuality: 1.0), let contentType = item.supportedContentTypes.first else {
                             throw SPError.emptyTransferredImage
