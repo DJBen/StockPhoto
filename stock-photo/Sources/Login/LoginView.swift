@@ -14,6 +14,12 @@ public struct LoginView: View {
     public var body: some View {
         WithViewStore(store) { viewStore in
             VStack(spacing: 16) {
+                Text(
+                    "Login"
+                )
+                .font(.title)
+                .padding(.top, 64)
+
                 Spacer()
 
                 GoogleSignInButton(

@@ -59,6 +59,22 @@ public struct AppView: View {
                             action: StockPhoto.Action.login
                         )
                     )
+                    #if DEBUG
+                    .sheet(
+                        isPresented: viewStore.binding(
+                            get: {
+                                // Showing two sheets at the same time is not allowed
+                                // https://nilcoalescing.com/blog/ShowMultipleSheetsAtOnceInSwiftUI/
+                                $0.debug.isPresentingDebugSheet
+                            },
+                            send: {
+                                StockPhoto.Action.debug(.setPresentDebugSheet($0))
+                            }
+                        )
+                    ) {
+                        DebugView(store: store.scope(state: \.debug, action: StockPhoto.Action.debug))
+                    }
+                    #endif
                 }
                 #if DEBUG
                 .onReceive(NotificationCenter.default.publisher(for: .deviceDidShakeNotification)) { _ in
@@ -66,7 +82,11 @@ public struct AppView: View {
                 }
                 .sheet(
                     isPresented: viewStore.binding(
-                        get: \.debug.isPresentingDebugSheet,
+                        get: {
+                            // Showing two sheets at the same time is not allowed
+                            // https://nilcoalescing.com/blog/ShowMultipleSheetsAtOnceInSwiftUI/
+                            $0.debug.isPresentingDebugSheet && !$0.login.isShowingLoginSheet
+                        },
                         send: {
                             StockPhoto.Action.debug(.setPresentDebugSheet($0))
                         }
