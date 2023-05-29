@@ -11,9 +11,17 @@ struct FileProgressView: View {
         return formatter
     }()
 
+    private var percentage: Float {
+        if totalBytesExpectedToSend == 0 {
+            return 0
+        } else {
+            return Float(totalBytesSent) / Float(totalBytesExpectedToSend)
+        }
+    }
+
     var body: some View {
-        let percentage = Float(totalBytesSent) / Float(totalBytesExpectedToSend)
         let percentageString = numberFormatter.string(from: NSNumber(value: percentage)) ?? "0%"
+
         ProgressView(
             value: percentage
         ) {
@@ -33,6 +41,11 @@ struct FileProgressView_Previews: PreviewProvider {
         FileProgressView(
             totalBytesSent: 30,
             totalBytesExpectedToSend: 100
+        )
+
+        FileProgressView(
+            totalBytesSent: 0,
+            totalBytesExpectedToSend: 0
         )
     }
 }
