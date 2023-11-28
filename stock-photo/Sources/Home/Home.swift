@@ -4,7 +4,7 @@ import StockPhotoFoundation
 import SwiftUI
 import UIKit
 
-public struct HomeModel: Equatable {
+public struct HomeModel: Equatable, Sendable {
     public var selectedPhotosPickerItem: PhotosPickerItem?
     public var transferredImage: Loadable<TransferredImage, SPError>
     public var uploadState: UploadFileState?
@@ -30,7 +30,7 @@ public struct HomeModel: Equatable {
 }
 
 @dynamicMemberLookup
-public struct HomeState: Equatable {
+public struct HomeState: Equatable, Sendable {
     public var account: Account?
     public var model: HomeModel
     public var segmentationModel: SegmentationModel

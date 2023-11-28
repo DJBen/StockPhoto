@@ -75,9 +75,9 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "AppTests",
+            name: "HomeTests",
             dependencies: [
-                "App",
+                "HomeImpl",
             ]
         ),
         .target(

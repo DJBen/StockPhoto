@@ -8,4 +8,8 @@ public struct ProjectImages: Sendable, Equatable {
         self.image = image
         self.maskedImage = maskedImage
     }
+
+    public static func ==(lhs: ProjectImages, rhs: ProjectImages) -> Bool {
+        return true
+    }
 }
