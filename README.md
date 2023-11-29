@@ -7,7 +7,7 @@
 ## Demo
 
 <div align="left">
-      <a href="[https://www.youtube.com/watch?v=c0fLOtfefhs">
+      <a href="https://www.youtube.com/watch?v=c0fLOtfefhs">
          <img src="https://img.youtube.com/vi/c0fLOtfefhs/0.jpg" style="width:100%;">
       </a>
 </div>
