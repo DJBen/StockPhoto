@@ -1,8 +1,10 @@
 # Stock Photo
 
-## Installation
-
-~Please refer to ImageSegmentationClientImpl module's README to download the image segmentation ML model.~
+Stock photo is an app fully written in swift-composable-architecture (TCA) and SwiftUI that serves as a medium sized educational project for TCA and SwiftUI learners. It consists of these modules that go beyond single page toy tutorials.
+- Login using OAuth (Login)
+- A photo browser (Home)
+- Photo uploader
+- Image segmentation
 
 ## Demo
 
