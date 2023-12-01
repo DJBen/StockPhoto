@@ -6,6 +6,13 @@ Stock photo is an app fully written in swift-composable-architecture (TCA) and S
 - Photo uploader
 - Image segmentation
 
+Demonstrate these scalability related topics that only is present on medium+ projects.
+- Navigation
+- Networking
+- Dependency injection
+- Modularization
+- Testing
+
 ## Demo
 
 [Link to video](https://www.youtube.com/watch?v=c0fLOtfefhs)
